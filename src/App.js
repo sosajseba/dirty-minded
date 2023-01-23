@@ -1,12 +1,20 @@
 import './App.css';
-import { auth } from "./firebase/firebase";
+import { auth, db } from "./firebase/firebase";
+import { ref, set, push, onValue } from "firebase/database";
 import { onAuthStateChanged, signInAnonymously, updateProfile } from 'firebase/auth';
 import { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 
 function App() {
-  
+
   const [user, setUser] = useState();
   const [userName, setUserName] = useState('');
+  const [searchParams] = useSearchParams();
+  const [joined, setJoined] = useState(false);
+  const [chat, setChat] = useState([]);
+  const [roomQuery] = useState(searchParams.get('room'));
+  const [roomId, setRoomId] = useState();
+  const [message, setMessage] = useState('');
 
   function createRoom() {
     if (!user.displayName) {
@@ -14,18 +22,51 @@ function App() {
         displayName: userName
       }).then(() => {
         setUser({ ...user, displayName: userName })
-        console.log("Profile updated..", userName)
       }).catch((error) => {
         console.log(error.code, error.message)
       });
     }
-    console.log('Name unchanged..')
+
+    const room = {
+      blackCards: [],
+      admin: auth.currentUser.uid,
+      gameOver: false,
+      players: [],
+      whiteCards: [],
+      chat: []
+    }
+
+    const roomKey = push(ref(db, 'rooms/'), room).key;
+
+    console.log("Created room", roomKey);
+
+    setRoomId(roomKey);
+
+    joinRoom(roomKey)
+
   }
 
-  function handleUserStateChanged(fbUser) {
-    if (fbUser) {
-      setUser(fbUser);
-      console.log(fbUser.uid, fbUser.displayName);
+  function joinRoom(roomQuery) {
+
+    const player = {
+      id: auth.currentUser.uid,
+      name: auth.currentUser.displayName,
+    }
+
+    set(ref(db, 'rooms/' + roomQuery + '/players/' + auth.currentUser.uid), player)
+
+    setJoined(true);
+
+    console.log('Joined to the room', roomQuery);
+  }
+
+  function sendMessage(event) {
+    push(ref(db, 'rooms/' + (roomQuery || roomId) + '/chat'), { message: message, name: user.displayName });
+  }
+
+  function handleUserStateChanged(user) {
+    if (user) {
+      setUser(user);
     } else {
       signInAnonymously(auth)
         .then(() => {
@@ -36,33 +77,59 @@ function App() {
           console.log(error.code, error.message)
         });
     }
+    if (roomQuery && !joined) {
+      joinRoom(roomQuery);
+    }
   }
+
+  useEffect(() => {
+    const query = ref(db, 'rooms/' + (roomQuery || roomId) + '/chat');
+    return onValue(query, (snapshot) => {
+      const data = snapshot.val();
+      if (snapshot.exists()) {
+        setChat(Object.values(data))
+      }
+    });
+  }, [joined])
 
   useEffect(() => {
     onAuthStateChanged(auth, handleUserStateChanged)
   }, [])
 
   useEffect(() => {
+    console.log('User updated..')
   }, [user])
 
   return (
     <div className="App">
       <header className="App-header">
-        {user ?
-          (user.displayName ?
-            <>
-              Hola {user.displayName}!
-              <button onClick={createRoom}>CREAR SALA</button>
-            </> :
-            <>
-              Elige un apodo
-              <input type='text' value={userName} onChange={event => setUserName(event.target.value)} />
-              <button onClick={createRoom}>CREAR SALA</button>
-            </>
-          ) :
+        {joined ?
           <>
-            Loading..
+            {
+              chat.map((message, index) => {
+                return <p key={'message' + index}>{message.name}: {message.message}</p>
+              })
+            }
+            <input type='text' value={message} onChange={event => setMessage(event.target.value)} />
+            <button onClick={sendMessage} onKeyDown={sendMessage}>Send</button>
           </>
+          :
+          (user ?
+            (user.displayName ?
+              <>
+                Hi {user.displayName}!
+                <button onClick={createRoom}>Create room</button>
+              </> :
+              <>
+                Elige un apodo
+                <input type='text' value={userName} onChange={event => setUserName(event.target.value)} />
+                <button onClick={createRoom}>Create room</button>
+              </>
+            ) :
+            <>
+              Loading..
+            </>
+          )
         }
       </header>
     </div>
