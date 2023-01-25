@@ -15,18 +15,10 @@ function App() {
   const [roomQuery] = useState(searchParams.get('room'));
   const [roomId, setRoomId] = useState();
   const [message, setMessage] = useState('');
+  const [nextReplyTime, setNextReplyTime] = useState(Date.now());
+  const [spam, setSpam] = useState('');
 
   function createRoom() {
-    if (!user.displayName) {
-      updateProfile(auth.currentUser, {
-        displayName: userName
-      }).then(() => {
-        setUser({ ...user, displayName: userName })
-      }).catch((error) => {
-        console.log(error.code, error.message)
-      });
-    }
-
     const room = {
       blackCards: [],
       admin: auth.currentUser.uid,
@@ -60,8 +52,14 @@ function App() {
     console.log('Joined to the room', roomQuery);
   }
 
-  function sendMessage(event) {
-    push(ref(db, 'rooms/' + (roomQuery || roomId) + '/chat'), { message: message, name: user.displayName });
+  function sendMessage() {
+    if (nextReplyTime < Date.now()) {
+      setSpam('');
+      push(ref(db, 'rooms/' + (roomQuery || roomId) + '/chat'), { message: message, name: user.displayName });
+    } else {
+      setSpam('Wait 2 seconds after the next message!');
+    }
+    setNextReplyTime(addSeconds(Date.now(), 2000))
   }
 
   function handleUserStateChanged(user) {
@@ -77,9 +75,28 @@ function App() {
           console.log(error.code, error.message)
         });
     }
-    if (roomQuery && !joined) {
-      joinRoom(roomQuery);
+  }
+
+  function changeDisplayName() {
+    if (!user.displayName) {
+      updateProfile(auth.currentUser, {
+        displayName: userName
+      }).then(() => {
+        setUser({ ...user, displayName: userName })
+      }).catch((error) => {
+        console.log(error.code, error.message)
+      });
     }
+
+    if (roomQuery) {
+      joinRoom(roomQuery);
+    } else {
+      createRoom();
+    }
+  }
+
+  function addSeconds(date, milliseconds) {
+    return date + milliseconds;
   }
 
   useEffect(() => {
@@ -112,18 +129,19 @@ function App() {
             }
             <input type='text' value={message} onChange={event => setMessage(event.target.value)} />
             <button onClick={sendMessage} onKeyDown={sendMessage}>Send</button>
+            <p>{spam}</p>
           </>
           :
           (user ?
             (user.displayName ?
               <>
                 Hi {user.displayName}!
-                <button onClick={createRoom}>Create room</button>
+                <button onClick={changeDisplayName}>{roomQuery ? 'Join room' : 'Create room'}</button>
               </> :
               <>
-                Elige un apodo
+                Pick a name!
                 <input type='text' value={userName} onChange={event => setUserName(event.target.value)} />
-                <button onClick={createRoom}>Create room</button>
+                <button onClick={changeDisplayName}>{roomQuery ? 'Join room' : 'Create room'}</button>
               </>
             ) :
             <>
