@@ -5,7 +5,8 @@
 }
 
 .left,
-.right {
+.right,
+.center {
   flex: 1 0 50%;
   background: rgb(238, 221, 144);
   white-space: nowrap;
@@ -16,6 +17,11 @@
 
 .right {
   background: rgb(173, 200, 230);
+}
+
+.center {
+  flex: 1 0 100%;
+  background: rgb(231, 171, 102);
 }
 
 .chat {

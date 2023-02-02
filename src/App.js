@@ -19,6 +19,8 @@ function App() {
   const [spam, setSpam] = useState('');
   const [players, setPlayers] = useState([]);
   const [roomIsFull, setRoomIsFull] = useState(false);
+  const [chooseName, setChooseName] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   function createRoom() {
     const room = {
@@ -32,7 +34,7 @@ function App() {
 
     const roomKey = push(ref(db, 'rooms/'), room).key;
 
-    console.log("Created:", roomKey);
+    setIsAdmin(true);
 
     setRoomId(roomKey);
 
@@ -40,14 +42,16 @@ function App() {
 
   }
 
-  function joinRoom(roomQuery) {  
+  function joinRoom(roomQuery) {
     if (players.length < Number(process.env.REACT_APP_MAX_PLAYERS)) {
       const player = {
         id: auth.currentUser.uid,
-        name: user.displayName,
+        name: user.displayName || userName,
       }
 
       set(ref(db, 'rooms/' + roomQuery + '/players/' + auth.currentUser.uid), player)
+
+      setRoomId(roomQuery);
 
       setJoined(true);
 
@@ -69,6 +73,7 @@ function App() {
   }
 
   function handleUserStateChanged(user) {
+
     if (user) {
       setUser(user);
     } else {
@@ -85,6 +90,7 @@ function App() {
 
   function changeDisplayName() {
     if (!user.displayName) {
+      console.log("ChangeDisplayName")
       updateProfile(auth.currentUser, {
         displayName: userName
       }).then(() => {
@@ -94,10 +100,16 @@ function App() {
       });
     }
 
-    if (roomQuery) {
-      joinRoom(roomQuery);
-    } else {
-      createRoom();
+    if (userName.length !== 0 || user.displayName) {
+      setChooseName(false);
+      if (roomQuery) {
+        joinRoom(roomQuery);
+      } else {
+        createRoom();
+      }
+    }
+    else {
+      setChooseName(true);
     }
   }
 
@@ -106,6 +118,12 @@ function App() {
   }
 
   useEffect(() => {
+    console.log("AuthUseEffect")
+    onAuthStateChanged(auth, handleUserStateChanged)
+  }, [])
+
+  useEffect(() => {
+    console.log("ChatUseEffect")
     const query = ref(db, 'rooms/' + (roomQuery || roomId) + '/chat');
     return onValue(query, (snapshot) => {
       const data = snapshot.val();
@@ -121,18 +139,10 @@ function App() {
       const data = snapshot.val();
       if (snapshot.exists()) {
         setPlayers(Object.values(data))
+        console.log("PlayersUseEffect", players.length)
       }
-      console.log("Players count:", players.length)
     });
   }, [roomId])
-
-  useEffect(() => {
-    console.log('User updated..')
-  }, [user])
-
-  useEffect(() => {
-    onAuthStateChanged(auth, handleUserStateChanged)
-  }, [])
 
   return (
     <div className="App">
@@ -161,6 +171,19 @@ function App() {
                 })
               }
             </div>
+            {isAdmin ?
+              <div className='center'>
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(process.env.REACT_APP_INVITE_URL + roomId);
+                  }}>
+                  Invite
+                </button>
+              </div> :
+              <div className='center'>
+                Waiting for the host to start the game..
+              </div>
+            }
           </div>
           :
           (roomIsFull ?
@@ -177,6 +200,7 @@ function App() {
                 <>
                   Pick a name!
                   <input type='text' value={userName} onChange={event => setUserName(event.target.value)} />
+                  {chooseName ? <span>You must pick a name to continue!<br /></span> : <></>}
                   <button onClick={changeDisplayName}>{roomQuery ? 'Join room' : 'Create room'}</button>
                 </>
               ) :
