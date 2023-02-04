@@ -21,6 +21,7 @@ function App() {
   const [roomIsFull, setRoomIsFull] = useState(false);
   const [chooseName, setChooseName] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [gameStarted, setGameStarted] = useState(false);
 
   function createRoom() {
     const room = {
@@ -113,6 +114,12 @@ function App() {
     }
   }
 
+  function startGame() {
+    if (players.length >= process.env.REACT_APP_MIN_PLAYERS) {
+      console.log("Game started!")
+    }
+  }
+
   function addSeconds(date, milliseconds) {
     return date + milliseconds;
   }
@@ -171,19 +178,31 @@ function App() {
                 })
               }
             </div>
-            {isAdmin ?
-              <div className='center'>
-                <button
-                  onClick={() => {
-                    navigator.clipboard.writeText(process.env.REACT_APP_INVITE_URL + roomId);
-                  }}>
-                  Invite
-                </button>
-              </div> :
-              <div className='center'>
-                Waiting for the host to start the game..
-              </div>
-            }
+            <div className='center'>
+              <p>Players joined: {players.length + '/' + process.env.REACT_APP_MAX_PLAYERS}</p>
+              {(process.env.REACT_APP_MIN_PLAYERS - players.length) === 0 ?
+                <></>
+                :
+                <p>Waiting for {process.env.REACT_APP_MIN_PLAYERS - players.length} more players to join </p>}
+              {isAdmin ?
+                <div>
+                  <button
+                    onClick={() => {
+                      startGame()
+                    }}>
+                    Start
+                  </button>
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(process.env.REACT_APP_INVITE_URL + roomId);
+                    }}>
+                    Invite
+                  </button>
+                </div>
+                :
+                <p>Waiting for the host to start the game..</p>
+              }
+            </div>
           </div>
           :
           (roomIsFull ?
