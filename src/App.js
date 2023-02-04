@@ -187,7 +187,7 @@ function App() {
               {room.gameStarted ? <p>Game started!!</p> :
                 <>
                   <p>Players joined: {players.length + '/' + process.env.REACT_APP_MAX_PLAYERS}</p>
-                  {(process.env.REACT_APP_MIN_PLAYERS - players.length) === 0 ?
+                  {(process.env.REACT_APP_MIN_PLAYERS - players.length) <= 0 ?
                     <></>
                     :
                     <p>Waiting for {process.env.REACT_APP_MIN_PLAYERS - players.length} more players to join </p>}
