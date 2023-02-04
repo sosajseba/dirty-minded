@@ -1,226 +1,224 @@
-{
-    "whiteCards": [
-        {
-            "text": "Moco, mucho moco"
-        },
-        {
-            "text": "La brutalidad policial"
-        },
-        {
-            "text": "La friendzone"
-        },
-        {
-            "text": "Un futuro donde Chile sea potencia nuclear"
-        },
-        {
-            "text": "La violencia domestica"
-        },
-        {
-            "text": "Ser pecho frio"
-        },
-        {
-            "text": "Un puterio"
-        },
-        {
-            "text": "El faso"
-        },
-        {
-            "text": "Un cinturonga"
-        },
-        {
-            "text": "La esvastica"
-        },
-        {
-            "text": "La copa menstrual"
-        },
-        {
-            "text": "La barba candado"
-        },
-        {
-            "text": "Matar al ultimo panda"
-        },
-        {
-            "text": "Esa tibia sensacion que sentis cuando levantas la caca del perro con una bolsita"
-        },
-        {
-            "text": "El transito lento"
-        },
-        {
-            "text": "El rigor mortis"
-        },
-        {
-            "text": "Una lluvia de pijas"
-        },
-        {
-            "text": "Pezones bizcos"
-        },
-        {
-            "text": "Separar siameses"
-        },
-        {
-            "text": "Bajonear bondiola a las 6 de la mañana"
-        },
-        {
-            "text": "Un sacapuntas"
-        },
-        {
-            "text": "Ashe <3"
-        },
-        {
-            "text": "me quiero rascar los huevos"
-        },
-        {
-            "text": "Cachorritos!"
-        },
-        {
-            "text": "Sexo sorpresa!"
-        },
-        {
-            "text": "2 girls 1 cup"
-        },
-        {
-            "text": "300 gramos de cocaina de Pablo Escobar"
-        },
-        {
-            "text": "50.000 voltios directamente en los pezones"
-        },
-        {
-            "text": "90/60/90"
-        },
-        {
-            "text": "Gemidos espontaneos"
-        },
-        {
-            "text": "Devaluacion"
-        },
-        {
-            "text": "Abortar a tiempo"
-        },
-        {
-            "text": "Un minuto de silencio"
-        },
-        {
-            "text": "Sexting"
-        },
-        {
-            "text": "Estrellas porno"
-        },
-        {
-            "text": "Una paradoja del tiempo"
-        },
-        {
-            "text": "Compartir jeringas"
-        },
-        {
-            "text": "La inevitable muerte del universo"
-        },
-        {
-            "text": "Pizza de anana"
-        },
-        {
-            "text": "La santa biblia"
-        },
-        {
-            "text": "Un mimo teniendo un ataque al corazon"
-        },
-        {
-            "text": "Lluvia dorada"
-        },
-        {
-            "text": "Robar tumbas"
-        },
-        {
-            "text": "Comerse la ultima milanesa"
-        },
-        {
-            "text": "Esperar hasta el matrimonio"
-        },
-        {
-            "text": "Disfuncion erectil"
-        },
-        {
-            "text": "Gente blanca"
-        },
-        {
-            "text": "Cagar para adentro"
-        },
-        {
-            "text": "Necrofilia"
-        },
-        {
-            "text": "Sopa Maruchan"
-        },
-        {
-            "text": "Esconder una ereccion"
-        },
-        {
-            "text": "Calzones comestibles"
-        },
-        {
-            "text": "Viagra"
-        },
-        {
-            "text": "Un racimo de porongas"
-        },
-        {
-            "text": "Perlas anales"
-        },
-        {
-            "text": "Sacarla"
-        },
-        {
-            "text": "Ponerla"
-        },
-        {
-            "text": "Techo de espejo"
-        },
-        {
-            "text": "Cuando te tiras un pedo y viene con sorpresa"
-        },
-        {
-            "text": "Prepucio"
-        },
-        {
-            "text": "Emborracharte con enjuague bucal"
-        },
-        {
-            "text": "Represion"
-        },
-        {
-            "text": "Un micropene"
-        },
-        {
-            "text": "Un forro pinchado"
-        },
-        {
-            "text": "Mi vida sexual"
-        },
-        {
-            "text": "Agarrarse el prepucio con el cierre del del pantalon"
-        },
-        {
-            "text": "Saber donde esta el clitoris"
-        },
-        {
-            "text": "Trava lindo o mina fea?"
-        },
-        {
-            "text": "Travestis pasables"
-        },
-        {
-            "text": "Piercings genitales"
-        },
-        {
-            "text": "Pajearse"
-        },
-        {
-            "text": "Abrir la ventana"
-        },
-        {
-            "text": "Fichar bultos"
-        },
-        {
-            "text": "Mostrar las tetas"
-        }
-    ]
-}
+[
+    {
+        "text": "Moco, mucho moco"
+    },
+    {
+        "text": "La brutalidad policial"
+    },
+    {
+        "text": "La friendzone"
+    },
+    {
+        "text": "Un futuro donde Chile sea potencia nuclear"
+    },
+    {
+        "text": "La violencia domestica"
+    },
+    {
+        "text": "Ser pecho frio"
+    },
+    {
+        "text": "Un puterio"
+    },
+    {
+        "text": "El faso"
+    },
+    {
+        "text": "Un cinturonga"
+    },
+    {
+        "text": "La esvastica"
+    },
+    {
+        "text": "La copa menstrual"
+    },
+    {
+        "text": "La barba candado"
+    },
+    {
+        "text": "Matar al ultimo panda"
+    },
+    {
+        "text": "Esa tibia sensacion que sentis cuando levantas la caca del perro con una bolsita"
+    },
+    {
+        "text": "El transito lento"
+    },
+    {
+        "text": "El rigor mortis"
+    },
+    {
+        "text": "Una lluvia de pijas"
+    },
+    {
+        "text": "Pezones bizcos"
+    },
+    {
+        "text": "Separar siameses"
+    },
+    {
+        "text": "Bajonear bondiola a las 6 de la mañana"
+    },
+    {
+        "text": "Un sacapuntas"
+    },
+    {
+        "text": "Ashe <3"
+    },
+    {
+        "text": "me quiero rascar los huevos"
+    },
+    {
+        "text": "Cachorritos!"
+    },
+    {
+        "text": "Sexo sorpresa!"
+    },
+    {
+        "text": "2 girls 1 cup"
+    },
+    {
+        "text": "300 gramos de cocaina de Pablo Escobar"
+    },
+    {
+        "text": "50.000 voltios directamente en los pezones"
+    },
+    {
+        "text": "90/60/90"
+    },
+    {
+        "text": "Gemidos espontaneos"
+    },
+    {
+        "text": "Devaluacion"
+    },
+    {
+        "text": "Abortar a tiempo"
+    },
+    {
+        "text": "Un minuto de silencio"
+    },
+    {
+        "text": "Sexting"
+    },
+    {
+        "text": "Estrellas porno"
+    },
+    {
+        "text": "Una paradoja del tiempo"
+    },
+    {
+        "text": "Compartir jeringas"
+    },
+    {
+        "text": "La inevitable muerte del universo"
+    },
+    {
+        "text": "Pizza de anana"
+    },
+    {
+        "text": "La santa biblia"
+    },
+    {
+        "text": "Un mimo teniendo un ataque al corazon"
+    },
+    {
+        "text": "Lluvia dorada"
+    },
+    {
+        "text": "Robar tumbas"
+    },
+    {
+        "text": "Comerse la ultima milanesa"
+    },
+    {
+        "text": "Esperar hasta el matrimonio"
+    },
+    {
+        "text": "Disfuncion erectil"
+    },
+    {
+        "text": "Gente blanca"
+    },
+    {
+        "text": "Cagar para adentro"
+    },
+    {
+        "text": "Necrofilia"
+    },
+    {
+        "text": "Sopa Maruchan"
+    },
+    {
+        "text": "Esconder una ereccion"
+    },
+    {
+        "text": "Calzones comestibles"
+    },
+    {
+        "text": "Viagra"
+    },
+    {
+        "text": "Un racimo de porongas"
+    },
+    {
+        "text": "Perlas anales"
+    },
+    {
+        "text": "Sacarla"
+    },
+    {
+        "text": "Ponerla"
+    },
+    {
+        "text": "Techo de espejo"
+    },
+    {
+        "text": "Cuando te tiras un pedo y viene con sorpresa"
+    },
+    {
+        "text": "Prepucio"
+    },
+    {
+        "text": "Emborracharte con enjuague bucal"
+    },
+    {
+        "text": "Represion"
+    },
+    {
+        "text": "Un micropene"
+    },
+    {
+        "text": "Un forro pinchado"
+    },
+    {
+        "text": "Mi vida sexual"
+    },
+    {
+        "text": "Agarrarse el prepucio con el cierre del del pantalon"
+    },
+    {
+        "text": "Saber donde esta el clitoris"
+    },
+    {
+        "text": "Trava lindo o mina fea?"
+    },
+    {
+        "text": "Travestis pasables"
+    },
+    {
+        "text": "Piercings genitales"
+    },
+    {
+        "text": "Pajearse"
+    },
+    {
+        "text": "Abrir la ventana"
+    },
+    {
+        "text": "Fichar bultos"
+    },
+    {
+        "text": "Mostrar las tetas"
+    }
+]

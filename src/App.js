@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import blackCards from './data/blackcards.json';
 import whiteCards from './data/whitecards.json';
+// TODO: only the host should have all cards in browser at start
 
 function App() {
 
@@ -23,16 +24,14 @@ function App() {
   const [roomIsFull, setRoomIsFull] = useState(false);
   const [chooseName, setChooseName] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [gameStarted, setGameStarted] = useState(false);
 
   function createRoom() {
     const room = {
-      blackCards: [],
+      blackCards,
       admin: auth.currentUser.uid,
+      gameStarted: false,
       gameOver: false,
-      players: [],
-      whiteCards: [],
-      chat: []
+      whiteCards,
     }
 
     const roomKey = push(ref(db, 'rooms/'), room).key;
