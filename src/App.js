@@ -4,6 +4,8 @@ import { ref, set, push, onValue } from "firebase/database";
 import { onAuthStateChanged, signInAnonymously, updateProfile } from 'firebase/auth';
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import blackCards from './data/blackcards.json';
+import whiteCards from './data/whitecards.json';
 
 function App() {
 
