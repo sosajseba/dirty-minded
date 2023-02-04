@@ -24,6 +24,7 @@ function App() {
   const [roomIsFull, setRoomIsFull] = useState(false);
   const [chooseName, setChooseName] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [room, setRoom] = useState();
 
   function createRoom() {
     const room = {
@@ -33,6 +34,8 @@ function App() {
       gameOver: false,
       whiteCards,
     }
+
+    setRoom(room);
 
     const roomKey = push(ref(db, 'rooms/'), room).key;
 
@@ -117,6 +120,7 @@ function App() {
 
   function startGame() {
     if (players.length >= process.env.REACT_APP_MIN_PLAYERS) {
+      set(ref(db, 'rooms/' + (roomQuery || roomId) + '/gameStarted'), true)
       console.log("Game started!")
     }
   }
@@ -131,23 +135,23 @@ function App() {
   }, [])
 
   useEffect(() => {
-    console.log("ChatUseEffect")
-    const query = ref(db, 'rooms/' + (roomQuery || roomId) + '/chat');
+    const query = ref(db, 'rooms/' + (roomQuery || roomId));
     return onValue(query, (snapshot) => {
       const data = snapshot.val();
       if (snapshot.exists()) {
-        setChat(Object.values(data))
-      }
-    });
-  }, [joined])
-
-  useEffect(() => {
-    const query = ref(db, 'rooms/' + (roomQuery || roomId) + '/players');
-    return onValue(query, (snapshot) => {
-      const data = snapshot.val();
-      if (snapshot.exists()) {
-        setPlayers(Object.values(data))
-        console.log("PlayersUseEffect", players.length)
+        let fooChat = [];
+        let fooPlayers = [];
+        const fooRoom = data
+        if (fooRoom.chat) {
+          fooChat = Object.values(fooRoom.chat);
+        }
+        if (fooRoom.players) {
+          fooPlayers = Object.values(fooRoom.players);
+        }
+        setRoom(fooRoom)
+        setChat(fooChat);
+        setPlayers(fooPlayers);
+        console.log("RoomUseEffect")
       }
     });
   }, [roomId])
@@ -180,28 +184,32 @@ function App() {
               }
             </div>
             <div className='center'>
-              <p>Players joined: {players.length + '/' + process.env.REACT_APP_MAX_PLAYERS}</p>
-              {(process.env.REACT_APP_MIN_PLAYERS - players.length) === 0 ?
-                <></>
-                :
-                <p>Waiting for {process.env.REACT_APP_MIN_PLAYERS - players.length} more players to join </p>}
-              {isAdmin ?
-                <div>
-                  <button
-                    onClick={() => {
-                      startGame()
-                    }}>
-                    Start
-                  </button>
-                  <button
-                    onClick={() => {
-                      navigator.clipboard.writeText(process.env.REACT_APP_INVITE_URL + roomId);
-                    }}>
-                    Invite
-                  </button>
-                </div>
-                :
-                <p>Waiting for the host to start the game..</p>
+              {room.gameStarted ? <p>Game started!!</p> :
+                <>
+                  <p>Players joined: {players.length + '/' + process.env.REACT_APP_MAX_PLAYERS}</p>
+                  {(process.env.REACT_APP_MIN_PLAYERS - players.length) === 0 ?
+                    <></>
+                    :
+                    <p>Waiting for {process.env.REACT_APP_MIN_PLAYERS - players.length} more players to join </p>}
+                  {isAdmin ?
+                    <div>
+                      <button
+                        onClick={() => {
+                          startGame()
+                        }}>
+                        Start
+                      </button>
+                      <button
+                        onClick={() => {
+                          navigator.clipboard.writeText(process.env.REACT_APP_INVITE_URL + roomId);
+                        }}>
+                        Invite
+                      </button>
+                    </div>
+                    :
+                    <p>Waiting for the host to start the game..</p>
+                  }
+                </>
               }
             </div>
           </div>
