@@ -24,7 +24,14 @@ function App() {
   const [roomIsFull, setRoomIsFull] = useState(false);
   const [chooseName, setChooseName] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [room, setRoom] = useState({gameStarted: false});
+  const [room, setRoom] = useState({ gameStarted: false });
+  const [turnIndex, setTurnIndex] = useState(0);
+  //TODO: improve initial states in room and players
+
+  const minPlayers = process.env.REACT_APP_MIN_PLAYERS;
+  const maxPlayers = process.env.REACT_APP_MAX_PLAYERS;
+  const cardsPerPlayer = process.env.REACT_APP_CARDS_PER_PLAYER;
+  const inviteUrl = process.env.REACT_APP_INVITE_URL;
 
   function createRoom() {
     const room = {
@@ -48,10 +55,11 @@ function App() {
   }
 
   function joinRoom(roomQuery) {
-    if (players.length < Number(process.env.REACT_APP_MAX_PLAYERS)) {
+    if (players.length < Number(maxPlayers)) {
       const player = {
         id: auth.currentUser.uid,
         name: user.displayName || userName,
+        reads: false
       }
 
       set(ref(db, 'rooms/' + roomQuery + '/players/' + auth.currentUser.uid), player)
@@ -119,10 +127,59 @@ function App() {
   }
 
   function startGame() {
-    if (players.length >= process.env.REACT_APP_MIN_PLAYERS) {
-      set(ref(db, 'rooms/' + (roomQuery || roomId) + '/gameStarted'), true)
-      console.log("Game started!")
+    if (players.length >= minPlayers) {
+      distributeCards();
+      setCurrentBlackCard();
+      firstTurn();
     }
+  }
+
+  function firstTurn() {
+    let playersCopy = players;
+    playersCopy[1].reads = true;
+    set(ref(db, 'rooms/' + roomId + "/players/" + playersCopy[1].id), playersCopy[1]);
+  }
+
+  function nextTurn() {
+    let playersCopy = players;
+    let playersObject = {};
+    for (let i = 0; i < playersCopy.length; i++) {
+      if (playersCopy[i].reads === true) {
+        playersCopy[i].reads = false;
+        if (playersCopy.length - 1 === i) {
+          playersCopy[0].reads = true;
+        } else {
+          playersCopy[i + 1].reads = true;
+        }
+        break;
+      }
+    }
+    playersCopy.forEach(player => {
+      playersObject[player.id] = player
+    });
+    set(ref(db, 'rooms/' + roomId + "/players"), playersObject);
+  }
+
+  function distributeCards() {
+    let roomCopy = room;
+    roomCopy.gameStarted = true;
+    players.forEach(player => {
+      const firstCards = roomCopy.whiteCards.slice(0, cardsPerPlayer);
+      const lastCards = roomCopy.whiteCards.slice(cardsPerPlayer, roomCopy.whiteCards.length);
+      player.cards = firstCards;
+      roomCopy.whiteCards = lastCards;
+    });
+    set(ref(db, 'rooms/' + roomId), roomCopy);
+  }
+
+  function setCurrentBlackCard() {
+    let roomCopy = room;
+    const firstCard = roomCopy.blackCards.slice(0, 1)[0];
+    roomCopy.currentBlackCard = firstCard
+    let lastBlackCards = roomCopy.blackCards.slice(1, roomCopy.blackCards.length);
+    lastBlackCards.push(firstCard);
+    roomCopy.blackCards = lastBlackCards;
+    set(ref(db, 'rooms/' + roomId), roomCopy);
   }
 
   function addSeconds(date, milliseconds) {
@@ -179,18 +236,24 @@ function App() {
               <p>Players:</p>
               {
                 players.map((player, index) => {
-                  return <p key={'player' + index}>{player.name}</p>
+                  return <p className={player.reads ? 'reader' : ''} key={'player' + index}>{player.name}</p>
                 })
               }
             </div>
             <div className='center'>
-              {room.gameStarted ? <p>Game started!!</p> :
+              {room.gameStarted
+                ?
                 <>
-                  <p>Players joined: {players.length + '/' + process.env.REACT_APP_MAX_PLAYERS}</p>
-                  {(process.env.REACT_APP_MIN_PLAYERS - players.length) <= 0 ?
+                  <p>Game started!!</p>
+                  <button onClick={nextTurn}>Next turn</button>
+                </>
+                :
+                <>
+                  <p>Players joined: {players.length + '/' + maxPlayers}</p>
+                  {(minPlayers - players.length) <= 0 ?
                     <></>
                     :
-                    <p>Waiting for {process.env.REACT_APP_MIN_PLAYERS - players.length} more players to join </p>}
+                    <p>Waiting for {minPlayers - players.length} more players to join </p>}
                   {isAdmin ?
                     <div>
                       <button
@@ -201,7 +264,7 @@ function App() {
                       </button>
                       <button
                         onClick={() => {
-                          navigator.clipboard.writeText(process.env.REACT_APP_INVITE_URL + roomId);
+                          navigator.clipboard.writeText(inviteUrl + roomId);
                         }}>
                         Invite
                       </button>

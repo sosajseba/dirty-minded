@@ -36,3 +36,7 @@
 input {
   width: 100%;
 }
+
+.reader{
+  background: rgb(126, 190, 126);
+}
