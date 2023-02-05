@@ -24,15 +24,15 @@ function App() {
   const [roomIsFull, setRoomIsFull] = useState(false);
   const [chooseName, setChooseName] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [room, setRoom] = useState();
+  const [room, setRoom] = useState({gameStarted: false});
 
   function createRoom() {
     const room = {
-      blackCards,
+      blackCards: blackCards.sort(() => 0.5 - Math.random()),
       admin: auth.currentUser.uid,
       gameStarted: false,
       gameOver: false,
-      whiteCards,
+      whiteCards: whiteCards.sort(() => 0.5 - Math.random()),
     }
 
     setRoom(room);
