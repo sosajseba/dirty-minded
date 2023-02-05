@@ -38,6 +38,7 @@ function App() {
       blackCards: blackCards.sort(() => 0.5 - Math.random()),
       admin: auth.currentUser.uid,
       gameStarted: false,
+      readerId: '',
       gameOver: false,
       whiteCards: whiteCards.sort(() => 0.5 - Math.random()),
     }
@@ -86,7 +87,6 @@ function App() {
   }
 
   function handleUserStateChanged(user) {
-
     if (user) {
       setUser(user);
     } else {
@@ -126,21 +126,34 @@ function App() {
     }
   }
 
-  function startGame() {
+  function setupGame() {
     if (players.length >= minPlayers) {
       distributeCards();
       setCurrentBlackCard();
       firstTurn();
+      initGame();
     }
   }
 
+  function initGame() {
+
+  }
+
   function firstTurn() {
+    let roomCopy = room;
     let playersCopy = players;
+    let playersObject = {};
     playersCopy[1].reads = true;
-    set(ref(db, 'rooms/' + roomId + "/players/" + playersCopy[1].id), playersCopy[1]);
+    roomCopy.readerId = playersCopy[1].id
+    playersCopy.forEach(player => {
+      playersObject[player.id] = player
+    });
+    roomCopy.players = playersObject
+    set(ref(db, 'rooms/' + roomId), roomCopy);
   }
 
   function nextTurn() {
+    let roomCopy = room;
     let playersCopy = players;
     let playersObject = {};
     for (let i = 0; i < playersCopy.length; i++) {
@@ -148,8 +161,10 @@ function App() {
         playersCopy[i].reads = false;
         if (playersCopy.length - 1 === i) {
           playersCopy[0].reads = true;
+          roomCopy.readerId = playersCopy[0].id
         } else {
           playersCopy[i + 1].reads = true;
+          roomCopy.readerId = playersCopy[i + 1].id
         }
         break;
       }
@@ -157,7 +172,8 @@ function App() {
     playersCopy.forEach(player => {
       playersObject[player.id] = player
     });
-    set(ref(db, 'rooms/' + roomId + "/players"), playersObject);
+    roomCopy.players = playersObject
+    set(ref(db, 'rooms/' + roomId), roomCopy);
   }
 
   function distributeCards() {
@@ -243,10 +259,16 @@ function App() {
             <div className='center'>
               {room.gameStarted
                 ?
-                <>
-                  <p>Game started!!</p>
-                  <button onClick={nextTurn}>Next turn</button>
-                </>
+                (user.uid === room.readerId ?
+                  <>
+                    <p>It is your turn!</p>
+                    <button onClick={nextTurn}>Next turn</button>
+                  </>
+                  :
+                  <>
+                    <p>It is {players[turnIndex].name}'s turn!</p>
+                  </>
+                )
                 :
                 <>
                   <p>Players joined: {players.length + '/' + maxPlayers}</p>
@@ -258,7 +280,7 @@ function App() {
                     <div>
                       <button
                         onClick={() => {
-                          startGame()
+                          setupGame()
                         }}>
                         Start
                       </button>
