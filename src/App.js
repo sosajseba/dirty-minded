@@ -337,12 +337,17 @@ function App() {
               </div>
             </div>
             <div className='wrapper'>
-              {room.gameOver === true ? <p>The winner is {room.winner.name}!</p> :
+              {room.gameOver === true
+                ?
+                <div className='center winner'>
+                  <p>The winner is {room.winner.name}!</p>
+                </div>
+                :
                 <>
                   {room.gameStarted === true
                     ?
                     (user.uid === room.readerId ?
-                      <div className='center'>
+                      <div className='center reader-box'>
                         <p>Choose a white card..</p>
                         <div className='black-card'>
                           <div className='card-container'>
@@ -366,7 +371,7 @@ function App() {
                       </div>
                       :
                       <>
-                        <div className='center'>
+                        <div className='center reader-box'>
                           <p>{getReaderName()} is choosing a white card..</p>
                           <div className='black-card'>
                             <div className='card-container'>
@@ -387,7 +392,7 @@ function App() {
                             })
                           }
                         </div>
-                        <div className='center'>
+                        <div className='center player-box'>
                           <div className='white-cards-container'>
                             {
                               me.cards.map((card, index) => {
@@ -405,7 +410,7 @@ function App() {
                       </>
                     )
                     :
-                    <>
+                    <div className='center reader-box'>
                       <p>Players joined: {players.length + '/' + maxPlayers}</p>
                       {(minPlayers - players.length) <= 0 ?
                         <></>
@@ -429,7 +434,7 @@ function App() {
                         :
                         <p>Waiting for the host to start the game..</p>
                       }
-                    </>
+                    </div>
                   }
                 </>
               }

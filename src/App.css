@@ -7,10 +7,13 @@
 .right,
 .center {
   flex: 1 0 50%;
-  background: rgb(238, 221, 144);
   text-align: center;
   padding: 10px;
   box-sizing: border-box;
+}
+
+.left {
+  background: rgb(238, 221, 144);
 }
 
 .right {
@@ -19,8 +22,19 @@
 
 .center {
   flex: 1 0 100%;
+  float: left;
+}
+
+.player-box{
+  background: rgb(143, 230, 201);
+}
+
+.reader-box{
   background: rgb(231, 171, 102);
-  float:left;
+}
+
+.winner{
+  background: rgb(201, 111, 178);
 }
 
 .chat {
