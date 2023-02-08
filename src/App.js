@@ -25,7 +25,10 @@ function App() {
   const [chooseName, setChooseName] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [room, setRoom] = useState({ gameStarted: false });
-  const [turnIndex, setTurnIndex] = useState(0);
+  const [me, setMe] = useState({});
+  const [selectedCardIndex, setSelectedCardIndex] = useState();
+  const [bestCardIndex, setBestCardIndex] = useState();
+  const [roundWinnerId, setRoundWinnerId] = useState();
   //TODO: improve initial states in room and players
 
   const minPlayers = process.env.REACT_APP_MIN_PLAYERS;
@@ -60,7 +63,9 @@ function App() {
       const player = {
         id: auth.currentUser.uid,
         name: user.displayName || userName,
-        reads: false
+        reads: false,
+        picking: false,
+        score: 0
       }
 
       set(ref(db, 'rooms/' + roomQuery + '/players/' + auth.currentUser.uid), player)
@@ -127,16 +132,13 @@ function App() {
   }
 
   function setupGame() {
-    if (players.length >= minPlayers) {
-      distributeCards();
-      setCurrentBlackCard();
+    setCurrentBlackCard();
+    if (players.length >= minPlayers && room.gameStarted === false) {
       firstTurn();
-      initGame();
+    } else {
+      nextTurn();
     }
-  }
-
-  function initGame() {
-
+    distributeCards();
   }
 
   function firstTurn() {
@@ -146,6 +148,9 @@ function App() {
     playersCopy[1].reads = true;
     roomCopy.readerId = playersCopy[1].id
     playersCopy.forEach(player => {
+      if (player.reads !== true) {
+        player.picking = true;
+      }
       playersObject[player.id] = player
     });
     roomCopy.players = playersObject
@@ -153,27 +158,47 @@ function App() {
   }
 
   function nextTurn() {
-    let roomCopy = room;
-    let playersCopy = players;
-    let playersObject = {};
-    for (let i = 0; i < playersCopy.length; i++) {
-      if (playersCopy[i].reads === true) {
-        playersCopy[i].reads = false;
-        if (playersCopy.length - 1 === i) {
-          playersCopy[0].reads = true;
-          roomCopy.readerId = playersCopy[0].id
-        } else {
-          playersCopy[i + 1].reads = true;
-          roomCopy.readerId = playersCopy[i + 1].id
+    if (room.gameOver === false) {
+      setRoundWinnerId(null);
+      let roomCopy = room;
+      let playersCopy = players;
+      let playersObject = {};
+      for (let i = 0; i < playersCopy.length; i++) {
+        if (playersCopy[i].reads === true) {
+          playersCopy[i].reads = false;
+          if (playersCopy.length - 1 === i) {
+            playersCopy[0].reads = true;
+            roomCopy.readerId = playersCopy[0].id
+          } else {
+            playersCopy[i + 1].reads = true;
+            roomCopy.readerId = playersCopy[i + 1].id
+          }
+          break;
         }
-        break;
       }
+      playersCopy.forEach(player => {
+        if (player.reads === false) {
+          player.picking = true;
+        }
+        playersObject[player.id] = player
+      });
+      roomCopy.players = playersObject
+      set(ref(db, 'rooms/' + (roomId || roomQuery)), roomCopy);
     }
-    playersCopy.forEach(player => {
-      playersObject[player.id] = player
-    });
-    roomCopy.players = playersObject
-    set(ref(db, 'rooms/' + roomId), roomCopy);
+  }
+
+  function winnerGetsOnePoint() {
+    setBestCardIndex(null);
+    let winner = players.filter(x => x.id === roundWinnerId)[0]
+    winner.score += 1;
+    set(ref(db, 'rooms/' + (roomId || roomQuery) + '/players/' + roundWinnerId), winner);
+    if (winner.score === 5) {
+      set(ref(db, 'rooms/' + (roomId || roomQuery) + '/winner'), winner);
+      set(ref(db, 'rooms/' + (roomId || roomQuery) + '/gameOver'), true);
+    }
+    else {
+      setupGame();
+    }
   }
 
   function distributeCards() {
@@ -181,8 +206,9 @@ function App() {
     roomCopy.gameStarted = true;
     players.forEach(player => {
       const firstCards = roomCopy.whiteCards.slice(0, cardsPerPlayer);
-      const lastCards = roomCopy.whiteCards.slice(cardsPerPlayer, roomCopy.whiteCards.length);
+      let lastCards = roomCopy.whiteCards.slice(cardsPerPlayer, roomCopy.whiteCards.length);
       player.cards = firstCards;
+      lastCards = lastCards.concat(firstCards);
       roomCopy.whiteCards = lastCards;
     });
     set(ref(db, 'rooms/' + roomId), roomCopy);
@@ -202,8 +228,57 @@ function App() {
     return date + milliseconds;
   }
 
+  function getReaderName() {
+    const reader = players.filter(x => x.id === room.readerId);
+    if (reader.length > 0) {
+      return reader[0].name;
+    }
+    return "Unknown";
+    //TODO: it may be of no use
+  }
+
+  function pickWhiteCard(cardIndex) {
+    if (me.picking === true) {
+      setSelectedCardIndex(null)
+      const myCopy = me;
+      myCopy.picking = false;
+      myCopy.pickedCard = myCopy.cards[cardIndex];
+      set(ref(db, 'rooms/' + (roomQuery || roomId) + '/players/' + me.id), myCopy);
+    }
+  }
+
+  function highlightMyCard(cardIndex) {
+    if (me.picking === true) {
+      setSelectedCardIndex(cardIndex)
+    }
+  }
+
+  function highlightBestCard(cardIndex, winnerId) {
+    if (everyonePicked() === true) {
+      setRoundWinnerId(winnerId);
+      setBestCardIndex(cardIndex)
+    }
+  }
+
+  function everyonePicked() {
+    let everyonePicked = true;
+    players.forEach(player => {
+      if (player.picking === true) {
+        everyonePicked = false
+      }
+    });
+    return everyonePicked;
+  }
+
+  function bestCardIsSelected(index) {
+    return bestCardIndex != null ? (index === bestCardIndex ? ' highlight' : '') : ''
+  }
+
+  function cardIsSelected(index) {
+    return selectedCardIndex != null ? (index === selectedCardIndex ? ' highlight' : '') : ''
+  }
+
   useEffect(() => {
-    console.log("AuthUseEffect")
     onAuthStateChanged(auth, handleUserStateChanged)
   }, [])
 
@@ -224,7 +299,10 @@ function App() {
         setRoom(fooRoom)
         setChat(fooChat);
         setPlayers(fooPlayers);
-        console.log("RoomUseEffect")
+        if (joined) {
+          const me = fooPlayers.filter(x => x.id === user.uid)[0];
+          setMe(me);
+        }
       }
     });
   }, [roomId])
@@ -233,66 +311,125 @@ function App() {
     <div className="App">
       <header className="App-header">
         {joined ?
-          <div className='wrapper'>
-            <div className='left'>
-              <div className='chat'>
+          <div>
+            <div className='wrapper'>
+              <div className='left'>
+                <div className='chat'>
+                  {
+                    chat.map((message, index) => {
+                      return <p key={'message' + index}>{message.name}: {message.message}</p>
+                    })
+                  }
+                  <div className='chat-input'>
+                    <input type='text' value={message} onChange={event => setMessage(event.target.value)} />
+                    <button onClick={sendMessage} onKeyDown={sendMessage}>Send</button>
+                  </div>
+                  <p>{spam}</p>
+                </div>
+              </div>
+              <div className='right'>
+                <p>Players:</p>
                 {
-                  chat.map((message, index) => {
-                    return <p key={'message' + index}>{message.name}: {message.message}</p>
+                  players.map((player, index) => {
+                    return <p className={player.reads ? 'reader' : ''} key={'player' + index}>{`${player.name} (${player.score})`}</p>
                   })
                 }
-                <div className='chat-input'>
-                  <input type='text' value={message} onChange={event => setMessage(event.target.value)} />
-                  <button onClick={sendMessage} onKeyDown={sendMessage}>Send</button>
-                </div>
-                <p>{spam}</p>
               </div>
             </div>
-            <div className='right'>
-              <p>Players:</p>
-              {
-                players.map((player, index) => {
-                  return <p className={player.reads ? 'reader' : ''} key={'player' + index}>{player.name}</p>
-                })
-              }
-            </div>
-            <div className='center'>
-              {room.gameStarted
-                ?
-                (user.uid === room.readerId ?
-                  <>
-                    <p>It is your turn!</p>
-                    <button onClick={nextTurn}>Next turn</button>
-                  </>
-                  :
-                  <>
-                    <p>It is {players[turnIndex].name}'s turn!</p>
-                  </>
-                )
-                :
+            <div className='wrapper'>
+              {room.gameOver === true ? <p>The winner is {room.winner.name}!</p> :
                 <>
-                  <p>Players joined: {players.length + '/' + maxPlayers}</p>
-                  {(minPlayers - players.length) <= 0 ?
-                    <></>
+                  {room.gameStarted === true
+                    ?
+                    (user.uid === room.readerId ?
+                      <div className='center'>
+                        <p>Choose a white card..</p>
+                        <div className='black-card'>
+                          <div className='card-container'>
+                            {room.currentBlackCard.text.replace('{1}', '________')}
+                          </div>
+                        </div>
+                        {
+                          players.map((player, index) => {
+                            return (
+                              player.id !== me.id ?
+                                <div className={'white-card' + bestCardIsSelected(index)} key={'pickWhiteCard' + index} onClick={() => highlightBestCard(index, player.id)}>
+                                  <div className='card-container' key={'cardContainer' + index}>
+                                    {player.picking === true ? player.name + ' is choosing..' : player.pickedCard.text}
+                                  </div>
+                                </div>
+                                : <></>
+                            )
+                          })
+                        }
+                        {everyonePicked() === true ? <button onClick={() => winnerGetsOnePoint()}>Ready</button> : <></>}
+                      </div>
+                      :
+                      <>
+                        <div className='center'>
+                          <p>{getReaderName()} is choosing a white card..</p>
+                          <div className='black-card'>
+                            <div className='card-container'>
+                              {room.currentBlackCard.text.replace('{1}', '________')}
+                            </div>
+                          </div>
+                          {
+                            players.map((player, index) => {
+                              return (
+                                player.id !== room.readerId ?
+                                  <div className='white-card' key={'pickWhiteCard' + index}>
+                                    <div className='card-container' key={'cardContainer' + index}>
+                                      {player.picking === true ? player.name + ' is choosing..' : player.pickedCard.text}
+                                    </div>
+                                  </div>
+                                  : <></>
+                              )
+                            })
+                          }
+                        </div>
+                        <div className='center'>
+                          <div className='white-cards-container'>
+                            {
+                              me.cards.map((card, index) => {
+                                return (
+                                  <div className={'white-card' + cardIsSelected(index)} key={'whiteCard' + index} onClick={() => highlightMyCard(index)}>
+                                    <div className='card-container' key={'cardContainer' + index}>
+                                      {card.text}
+                                    </div>
+                                  </div>)
+                              })
+                            }
+                            <button onClick={() => pickWhiteCard(selectedCardIndex)}>Ready</button>
+                          </div>
+                        </div>
+                      </>
+                    )
                     :
-                    <p>Waiting for {minPlayers - players.length} more players to join </p>}
-                  {isAdmin ?
-                    <div>
-                      <button
-                        onClick={() => {
-                          setupGame()
-                        }}>
-                        Start
-                      </button>
-                      <button
-                        onClick={() => {
-                          navigator.clipboard.writeText(inviteUrl + roomId);
-                        }}>
-                        Invite
-                      </button>
-                    </div>
-                    :
-                    <p>Waiting for the host to start the game..</p>
+                    <>
+                      <p>Players joined: {players.length + '/' + maxPlayers}</p>
+                      {(minPlayers - players.length) <= 0 ?
+                        <></>
+                        :
+                        <p>Waiting for {minPlayers - players.length} more players to join </p>}
+                      {isAdmin ?
+                        <div>
+                          <button
+                            onClick={() => {
+                              setupGame()
+                            }}>
+                            Start
+                          </button>
+                          <button
+                            onClick={() => {
+                              navigator.clipboard.writeText(inviteUrl + roomId);
+                            }}>
+                            Invite
+                          </button>
+                        </div>
+                        :
+                        <p>Waiting for the host to start the game..</p>
+                      }
+                    </>
                   }
                 </>
               }
