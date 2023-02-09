@@ -135,10 +135,25 @@ function App() {
     setCurrentBlackCard();
     if (players.length >= minPlayers && room.gameStarted === false) {
       firstTurn();
+      distributeCards();
     } else {
+      replenishCards();
       nextTurn();
     }
-    distributeCards();
+  }
+
+  function replenishCards() {
+    let roomCopy = room;
+    players.forEach(player => {
+      if (player.cards.length < cardsPerPlayer) {
+        const firstCards = roomCopy.whiteCards.slice(0, 1);
+        let lastCards = roomCopy.whiteCards.slice(1, roomCopy.whiteCards.length);
+        player.cards = player.cards.concat(firstCards);
+        lastCards = lastCards.concat(firstCards);
+        roomCopy.whiteCards = lastCards;
+      }
+    });
+    set(ref(db, 'rooms/' + roomId), roomCopy);
   }
 
   function firstTurn() {
@@ -243,6 +258,7 @@ function App() {
       const myCopy = me;
       myCopy.picking = false;
       myCopy.pickedCard = myCopy.cards[cardIndex];
+      myCopy.cards.splice(cardIndex, 1);
       set(ref(db, 'rooms/' + (roomQuery || roomId) + '/players/' + me.id), myCopy);
     }
   }
