@@ -1,0 +1,10 @@
+version: '3'
+
+services:
+  front-end:
+    container_name: dirty-minded-ui
+    build:
+      context: .
+      dockerfile: Dockerfile.local
+    ports:
+      - "3000:80"
