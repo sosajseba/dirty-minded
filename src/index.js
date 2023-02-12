@@ -5,15 +5,18 @@ import App from './App';
 import reportWebVitals from './reportWebVitals';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Lobby from './routes/lobby';
+import SocketProvider from './components/socket_context';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
-  <BrowserRouter>
-    <Routes>
-      <Route path="/" element={<App />}/>
-      <Route path="lobby" element={<Lobby/>}/>
-    </Routes>
-  </BrowserRouter>
+  <SocketProvider>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<App />} />
+        <Route path="lobby" element={<Lobby />} />
+      </Routes>
+    </BrowserRouter>
+  </SocketProvider>
 );
 
 // If you want to start measuring performance in your app, pass a function
