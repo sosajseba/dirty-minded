@@ -7,8 +7,11 @@ const SocketProvider = (props) => {
         chat: [],
         players: [],
         myId: '',
-        roomId: ''
+        roomId: '',
+        roomIsFull: false
     });
+
+    const [joined, setJoined] = useState(false);
 
     const addMessage = (message) => {
         setValue(state => {
@@ -38,9 +41,9 @@ const SocketProvider = (props) => {
         });
     }
 
-    useEffect(() => initSockets({ setValue }), [initSockets]);
+    useEffect(() => initSockets({ setValue, setJoined }), [initSockets]);
 
-    const values = { value, addMessage, addPlayer, setRoom };
+    const values = { joined, value, addMessage, addPlayer, setRoom, setJoined };
 
     return (
         <SocketContext.Provider value={values}>

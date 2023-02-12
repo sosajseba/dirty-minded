@@ -1,10 +1,5 @@
 import { createContext } from "react";
 
-const SocketContext = createContext({
-    chat: [],
-    players: [],
-    myId: '',
-    roomId: ''
-});
+const SocketContext = createContext();
 
 export default SocketContext;

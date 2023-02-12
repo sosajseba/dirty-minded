@@ -1,8 +1,7 @@
 import { socket } from './index';
 
-export const socketEvents = ({ setValue }) => {
+export const socketEvents = ({ setValue, setJoined }) => {
     setValue(state => {
-        state.myId = socket.id
         return { ...state }
     });
 
@@ -15,8 +14,18 @@ export const socketEvents = ({ setValue }) => {
 
     socket.on('new-player', (room) => {
         setValue(state => {
+            setJoined(true)
             state.roomId = room.roomId
             state.players = room.players
+            return { ...state }
+        });
+    });
+
+    socket.on('room-is-full', (roomIsFull) => {
+        setValue(state => {
+            console.log(roomIsFull)
+            setJoined(false);
+            state.roomIsFull = roomIsFull
             return { ...state }
         });
     });

@@ -17,9 +17,8 @@ function App() {
   const [user, setUser] = useState();
   const [userName, setUserName] = useState('');
   const [searchParams] = useSearchParams();
-  const [joined, setJoined] = useState(false);
+  //const [joined, setJoined] = useState(false);
   const [roomQuery] = useState(searchParams.get('room'));
-  const [roomIsFull, setRoomIsFull] = useState(false);
   const [chooseName, setChooseName] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [room, setRoomOld] = useState({ gameStarted: false });
@@ -28,7 +27,7 @@ function App() {
   const [bestCardIndex, setBestCardIndex] = useState();
   const [roundWinnerId, setRoundWinnerId] = useState();
 
-  const { value, addPlayer, setRoom } = useContext(SocketContext)
+  const { joined, value, addPlayer, setRoom, setJoined } = useContext(SocketContext)
   //TODO: improve initial states in room and players
 
   const minPlayers = process.env.REACT_APP_MIN_PLAYERS;
@@ -47,7 +46,8 @@ function App() {
       readerId: '',
       gameOver: false,
       whiteCards: whiteCards.sort(() => 0.5 - Math.random()),
-      players: []
+      players: [],
+      roomIsFull: false
     }
 
     setIsAdmin(true);
@@ -57,39 +57,33 @@ function App() {
   }
 
   function join(data) {
-    if (value.players.length < Number(maxPlayers)) {
-
-      const player = {
-        id: value.myId,
-        name: user ? user.displayName : userName,
-        reads: false,
-        picking: false,
-        score: 0
-      }
-
-      setJoined(true);
-
-      if (data.room) {
-
-        data.room.admin = player.id
-
-        data.room.players.push(player);
-
-        setRoom(data.room);
-
-        createRoom(data.room);
-
-      } else {
-
-        addPlayer(player)
-
-        joinRoom(player, data.roomId) // now player has to be in room object
-
-        console.log('Joined:', data.roomId);
-      }
+    const player = {
+      id: value.myId,
+      name: user ? user.displayName : userName,
+      reads: false,
+      picking: false,
+      score: 0
     }
-    else {
-      setRoomIsFull(true);
+
+    if (data.room) {
+
+      data.room.admin = player.id
+
+      data.room.players.push(player);
+      
+      setJoined(true)
+      
+      setRoom(data.room);
+
+      createRoom(data.room);
+
+    } else {
+
+      addPlayer(player)
+
+      joinRoom(player, data.roomId)
+
+      console.log('Joined:', data.roomId);
     }
   }
 
@@ -440,7 +434,7 @@ function App() {
           </div>
         </div>
         :
-        (roomIsFull ?
+        (value.roomIsFull ?
           <div>
             Room is full :C
           </div>
