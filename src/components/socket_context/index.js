@@ -13,6 +13,8 @@ const SocketProvider = (props) => {
 
     const [joined, setJoined] = useState(false);
 
+    const [me, setMe] = useState({});
+
     const addMessage = (message) => {
         setValue(state => {
             const list = [message];
@@ -41,9 +43,11 @@ const SocketProvider = (props) => {
         });
     }
 
-    useEffect(() => initSockets({ setValue, setJoined }), [initSockets]);
+    useEffect(() => {
+        initSockets({ me, setValue, setJoined, setMe })
+    }, [initSockets, me]);
 
-    const values = { joined, value, addMessage, addPlayer, setRoom, setJoined };
+    const values = { me, joined, value, addMessage, addPlayer, setRoom, setJoined, setMe };
 
     return (
         <SocketContext.Provider value={values}>

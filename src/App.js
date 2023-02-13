@@ -1,7 +1,4 @@
 import './App.css';
-import { auth, db } from "./firebase/firebase";
-import { ref, set, push, onValue } from "firebase/database";
-import { onAuthStateChanged, signInAnonymously, updateProfile } from 'firebase/auth';
 import { useContext, useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import blackCards from './data/blackcards.json';
@@ -10,24 +7,22 @@ import Chat from './components/chat'
 import Players from './components/players';
 import SocketContext from './components/socket_context/context';
 import { v4 as uuidv4 } from 'uuid';
-import { joinRoom, createRoom } from './components/sockets/emit';
+import { joinRoom, createRoom, updateRoom } from './components/sockets/emit';
+import { socket } from './components/sockets/index'
 
 function App() {
 
   const [user, setUser] = useState();
   const [userName, setUserName] = useState('');
   const [searchParams] = useSearchParams();
-  //const [joined, setJoined] = useState(false);
   const [roomQuery] = useState(searchParams.get('room'));
   const [chooseName, setChooseName] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [room, setRoomOld] = useState({ gameStarted: false });
-  const [me, setMe] = useState({});
   const [selectedCardIndex, setSelectedCardIndex] = useState();
   const [bestCardIndex, setBestCardIndex] = useState();
   const [roundWinnerId, setRoundWinnerId] = useState();
 
-  const { joined, value, addPlayer, setRoom, setJoined } = useContext(SocketContext)
+  const { me, joined, value, addPlayer, setRoom, setJoined, setMe } = useContext(SocketContext)
   //TODO: improve initial states in room and players
 
   const minPlayers = process.env.REACT_APP_MIN_PLAYERS;
@@ -35,6 +30,7 @@ function App() {
   const cardsPerPlayer = process.env.REACT_APP_CARDS_PER_PLAYER;
   const inviteUrl = process.env.REACT_APP_INVITE_URL;
 
+  //#region DONE
   function create() {
 
     const roomId = uuidv4()
@@ -58,21 +54,22 @@ function App() {
 
   function join(data) {
     const player = {
-      id: value.myId,
+      id: socket.id,
       name: user ? user.displayName : userName,
       reads: false,
       picking: false,
-      score: 0
+      score: 0,
+      cards: []
     }
+
+    setMe(player);
 
     if (data.room) {
 
-      data.room.admin = player.id
-
       data.room.players.push(player);
-      
+
       setJoined(true)
-      
+
       setRoom(data.room);
 
       createRoom(data.room);
@@ -84,21 +81,6 @@ function App() {
       joinRoom(player, data.roomId)
 
       console.log('Joined:', data.roomId);
-    }
-  }
-
-  function handleUserStateChanged(user) {
-    if (user) {
-      setUser(user);
-    } else {
-      signInAnonymously(auth)
-        .then(() => {
-          setUser(auth.currentUser)
-          console.log("Signed in..")
-        })
-        .catch((error) => {
-          console.log(error.code, error.message)
-        });
     }
   }
 
@@ -121,10 +103,11 @@ function App() {
       setChooseName(true);
     }
   }
+  //#endregion DONE
 
   function setupGame() {
     setCurrentBlackCard();
-    if (value.players.length >= minPlayers && room.gameStarted === false) {
+    if (value.players.length >= minPlayers && value.gameStarted === false) {
       firstTurn();
       distributeCards();
     } else {
@@ -134,8 +117,8 @@ function App() {
   }
 
   function replenishCards() {
-    let roomCopy = room;
-    value.players.forEach(player => {
+    let roomCopy = value;
+    roomCopy.players.forEach(player => {
       if (player.cards.length < cardsPerPlayer) {
         const firstCards = roomCopy.whiteCards.slice(0, 1);
         let lastCards = roomCopy.whiteCards.slice(1, roomCopy.whiteCards.length);
@@ -144,31 +127,28 @@ function App() {
         roomCopy.whiteCards = lastCards;
       }
     });
-    set(ref(db, 'rooms/' + value.roomId), roomCopy);
+    updateRoom(roomCopy);
   }
 
   function firstTurn() {
-    let roomCopy = room;
+    let roomCopy = value;
     let playersCopy = value.players;
-    let playersObject = {};
     playersCopy[1].reads = true;
     roomCopy.readerId = playersCopy[1].id
     playersCopy.forEach(player => {
       if (player.reads !== true) {
         player.picking = true;
       }
-      playersObject[player.id] = player
     });
-    roomCopy.players = playersObject
-    set(ref(db, 'rooms/' + value.roomId), roomCopy);
+    roomCopy.players = playersCopy
+    updateRoom(roomCopy);
   }
 
   function nextTurn() {
-    if (room.gameOver === false) {
+    if (value.gameOver === false) {
       setRoundWinnerId(null);
-      let roomCopy = room;
+      let roomCopy = value;
       let playersCopy = value.players;
-      let playersObject = {};
       for (let i = 0; i < playersCopy.length; i++) {
         if (playersCopy[i].reads === true) {
           playersCopy[i].reads = false;
@@ -186,52 +166,61 @@ function App() {
         if (player.reads === false) {
           player.picking = true;
         }
-        playersObject[player.id] = player
       });
-      roomCopy.players = playersObject
-      set(ref(db, 'rooms/' + (value.roomId || roomQuery)), roomCopy);
+      roomCopy.players = playersCopy
+      updateRoom(roomCopy)
     }
   }
 
   function winnerGetsOnePoint() {
-    setBestCardIndex(null);
-    let winner = value.players.filter(x => x.id === roundWinnerId)[0]
-    winner.score += 1;
-    set(ref(db, 'rooms/' + (value.roomId || roomQuery) + '/players/' + roundWinnerId), winner);
-    if (winner.score === 5) {
-      set(ref(db, 'rooms/' + (value.roomId || roomQuery) + '/winner'), winner);
-      set(ref(db, 'rooms/' + (value.roomId || roomQuery) + '/gameOver'), true);
-    }
-    else {
-      setupGame();
+    if (bestCardIndex != null) {
+      setBestCardIndex(null);
+      let roomCopy = value
+      let winner;
+      roomCopy.players.forEach(player => {
+        if (player.id === roundWinnerId) {
+          player.score += 1;
+          winner = player
+        }
+      });
+
+      if (winner.score === 5) {
+        roomCopy.winner = winner
+        roomCopy.gameOver = true;
+        updateRoom(roomCopy);
+      }
+      else {
+        updateRoom(roomCopy);
+        setupGame();
+      }
     }
   }
 
   function distributeCards() {
-    let roomCopy = room;
+    let roomCopy = value;
     roomCopy.gameStarted = true;
-    value.players.forEach(player => {
+    roomCopy.players.forEach(player => {
       const firstCards = roomCopy.whiteCards.slice(0, cardsPerPlayer);
       let lastCards = roomCopy.whiteCards.slice(cardsPerPlayer, roomCopy.whiteCards.length);
       player.cards = firstCards;
       lastCards = lastCards.concat(firstCards);
       roomCopy.whiteCards = lastCards;
     });
-    set(ref(db, 'rooms/' + value.roomId), roomCopy);
+    updateRoom(roomCopy);
   }
 
   function setCurrentBlackCard() {
-    let roomCopy = room;
+    let roomCopy = value;
     const firstCard = roomCopy.blackCards.slice(0, 1)[0];
     roomCopy.currentBlackCard = firstCard
     let lastBlackCards = roomCopy.blackCards.slice(1, roomCopy.blackCards.length);
     lastBlackCards.push(firstCard);
     roomCopy.blackCards = lastBlackCards;
-    set(ref(db, 'rooms/' + value.roomId), roomCopy);
+    updateRoom(roomCopy);
   }
 
   function getReaderName() {
-    const reader = value.players.filter(x => x.id === room.readerId);
+    const reader = value.players.filter(x => x.id === value.readerId);
     if (reader.length > 0) {
       return reader[0].name;
     }
@@ -240,13 +229,19 @@ function App() {
   }
 
   function pickWhiteCard(cardIndex) {
-    if (me.picking === true) {
-      setSelectedCardIndex(null)
-      const myCopy = me;
-      myCopy.picking = false;
-      myCopy.pickedCard = myCopy.cards[cardIndex];
-      myCopy.cards.splice(cardIndex, 1);
-      set(ref(db, 'rooms/' + (roomQuery || value.roomId) + '/players/' + me.id), myCopy);
+    if (selectedCardIndex != null) {
+      if (me.picking === true) {
+        setSelectedCardIndex(null)
+        let roomCopy = value;
+        roomCopy.players.forEach(player => {
+          if (player.id === me.id) {
+            player.picking = false;
+            player.pickedCard = player.cards[cardIndex];
+            player.cards.splice(cardIndex, 1);
+          }
+        });
+        updateRoom(roomCopy);
+      }
     }
   }
 
@@ -281,35 +276,6 @@ function App() {
     return selectedCardIndex != null ? (index === selectedCardIndex ? ' highlight' : '') : ''
   }
 
-  // useEffect(() => {
-  //   onAuthStateChanged(auth, handleUserStateChanged)
-  // }, [])
-
-  // useEffect(() => {
-  //   const query = ref(db, 'rooms/' + (roomQuery || value.roomId));
-  //   return onValue(query, (snapshot) => {
-  //     const data = snapshot.val();
-  //     if (snapshot.exists()) {
-  //       let fooChat = [];
-  //       let fooPlayers = [];
-  //       const fooRoom = data
-  //       if (fooRoom.chat) {
-  //         fooChat = Object.values(fooRoom.chat);
-  //       }
-  //       if (fooRoom.players) {
-  //         fooPlayers = Object.values(fooRoom.players);
-  //       }
-  //       setRoomOld(fooRoom)
-  //       setChat(fooChat);
-  //       setPlayers(fooPlayers);
-  //       if (joined) {
-  //         const me = fooPlayers.filter(x => x.id === user.uid)[0];
-  //         setMe(me);
-  //       }
-  //     }
-  //   });
-  // }, [value.roomId])
-
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem('user'));
     if (user) {
@@ -330,21 +296,21 @@ function App() {
           </div>
 
           <div className='wrapper'>
-            {room.gameOver === true
+            {value.gameOver === true
               ?
               <div className='center winner'>
-                <p>The winner is {room.winner.name}!</p>
+                <p>The winner is {value.winner.name}!</p>
               </div>
               :
               <>
-                {room.gameStarted === true
+                {value.gameStarted === true
                   ?
-                  (user.uid === room.readerId ?
+                  (me.id === value.readerId ?
                     <div className='center reader-box'>
                       <p>Choose a white card..</p>
                       <div className='black-card'>
                         <div className='card-container'>
-                          {room.currentBlackCard.text.replace('{1}', '________')}
+                          {value.currentBlackCard.text.replace('{1}', '________')}
                         </div>
                       </div>
                       {
@@ -368,13 +334,13 @@ function App() {
                         <p>{getReaderName()} is choosing a white card..</p>
                         <div className='black-card'>
                           <div className='card-container'>
-                            {room.currentBlackCard.text.replace('{1}', '________')}
+                            {value.currentBlackCard.text.replace('{1}', '________')}
                           </div>
                         </div>
                         {
                           value.players.map((player, index) => {
                             return (
-                              player.id !== room.readerId ?
+                              player.id !== value.readerId ?
                                 <div className='white-card' key={'pickWhiteCard' + index}>
                                   <div className='card-container' key={'cardContainer' + index}>
                                     {player.picking === true ? player.name + ' is choosing..' : player.pickedCard.text}
@@ -411,12 +377,19 @@ function App() {
                       <p>Waiting for {minPlayers - value.players.length} more players to join </p>}
                     {isAdmin ?
                       <div>
-                        <button
-                          onClick={() => {
-                            setupGame()
-                          }}>
-                          Start
-                        </button>
+                        {
+                          (minPlayers - value.players.length) <= 0
+                            ?
+                            <button
+                              onClick={() => {
+                                setupGame()
+                              }}>
+                              Start
+                            </button>
+                            :
+                            <></>
+                        }
+
                         <button
                           onClick={() => {
                             navigator.clipboard.writeText(inviteUrl + value.roomId);

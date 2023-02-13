@@ -3,6 +3,6 @@ import { socketEvents } from "./events";
 
 export const socket = io.connect('http://localhost:3001');
 
-export const initSockets = ({ setValue, setJoined }) => {
-  socketEvents({ setValue, setJoined });
+export const initSockets = ({ me, setValue, setJoined, setMe }) => {
+  socketEvents({ me, setValue, setJoined, setMe });
 };
