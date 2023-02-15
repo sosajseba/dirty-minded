@@ -25,10 +25,10 @@ function App() {
   const { me, joined, value, addPlayer, setRoom, setJoined, setMe } = useContext(SocketContext)
   //TODO: improve initial states in room and players
 
-  const minPlayers = process.env.REACT_APP_MIN_PLAYERS;
-  const maxPlayers = process.env.REACT_APP_MAX_PLAYERS;
-  const cardsPerPlayer = process.env.REACT_APP_CARDS_PER_PLAYER;
-  const inviteUrl = process.env.REACT_APP_INVITE_URL;
+  const minPlayers = window._env_.REACT_APP_MIN_PLAYERS;
+  const maxPlayers = window._env_.REACT_APP_MAX_PLAYERS;
+  const cardsPerPlayer = window._env_.REACT_APP_CARDS_PER_PLAYER;
+  const inviteUrl = window._env_.REACT_APP_INVITE_URL;
 
   //#region DONE
   function create() {
@@ -392,6 +392,7 @@ function App() {
 
                         <button
                           onClick={() => {
+                            console.log(inviteUrl + value.roomId)
                             navigator.clipboard.writeText(inviteUrl + value.roomId);
                           }}>
                           Invite
