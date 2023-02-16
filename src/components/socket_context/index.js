@@ -45,7 +45,10 @@ const SocketProvider = (props) => {
 
     useEffect(() => {
         initSockets({ me, setValue, setJoined, setMe })
-    }, [initSockets, me]);
+    }, [initSockets]);
+
+    useEffect(() => {
+    }, [me]);
 
     const values = { me, joined, value, addMessage, addPlayer, setRoom, setJoined, setMe };
 

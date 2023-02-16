@@ -1,6 +1,6 @@
 import { socket } from './index';
 
-export const socketEvents = ({ me, setValue, setJoined, setMe }) => {
+export const socketEvents = ({ setValue, setJoined, setMe }) => {
     setValue(state => {
         return { ...state }
     });
@@ -23,7 +23,6 @@ export const socketEvents = ({ me, setValue, setJoined, setMe }) => {
 
     socket.on('room-is-full', (roomIsFull) => {
         setValue(state => {
-            console.log(roomIsFull)
             setJoined(false);
             state.roomIsFull = roomIsFull
             return { ...state }
@@ -31,9 +30,10 @@ export const socketEvents = ({ me, setValue, setJoined, setMe }) => {
     });
 
     socket.on('room-updated', (room) => {
+        const user = JSON.parse(localStorage.getItem('user'));
         // maybe chat should be outside the room
         room.players.forEach(player => {
-            if (player.id === me.id) {
+            if (player.id === user.id) {
                 setMe(player)  // maybe i should setMe in App.js to avoid too many re-renders
             }
         });
@@ -41,6 +41,5 @@ export const socketEvents = ({ me, setValue, setJoined, setMe }) => {
             state = room
             return { ...state }
         });
-        
     });
 };

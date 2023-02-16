@@ -62,6 +62,10 @@ function App() {
       cards: []
     }
 
+    const updateUsr = { displayName: player.name, id: player.id }
+    localStorage.setItem('user', JSON.stringify(updateUsr));
+    setUser(updateUsr);
+
     setMe(player);
 
     if (data.room) {
@@ -86,7 +90,7 @@ function App() {
 
   function changeDisplayName() {
     if (!user) {
-      const newUsr = { displayName: userName }
+      const newUsr = { displayName: userName, id: socket.id }
       localStorage.setItem('user', JSON.stringify(newUsr));
       setUser(newUsr);
     }
