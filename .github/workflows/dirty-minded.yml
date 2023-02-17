@@ -3,7 +3,7 @@ on:
     branches:
     - main
     - develop
-name: ${{ github.repository }}-action
+name: dirty-minded-action
 jobs:
   build-and-push:
     name: build and push image
