@@ -3,7 +3,7 @@ on:
     branches:
     - main
     - develop
-name: dirty-minded-action
+name: dirty-minded-workflow
 jobs:
   build-and-push:
     name: build and push image
