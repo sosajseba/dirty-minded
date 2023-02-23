@@ -17,7 +17,6 @@ function App() {
   const [searchParams] = useSearchParams();
   const [roomQuery] = useState(searchParams.get('room'));
   const [chooseName, setChooseName] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
   const [selectedCardIndex, setSelectedCardIndex] = useState();
   const [bestCardIndex, setBestCardIndex] = useState();
   const [roundWinnerId, setRoundWinnerId] = useState();
@@ -46,9 +45,7 @@ function App() {
       roomIsFull: false
     }
 
-    setIsAdmin(true);
-
-    join({ room: room, roomId: roomId })
+    join({ room: room, roomId: roomId, admin: true })
 
   }
 
@@ -56,6 +53,7 @@ function App() {
     const player = {
       id: socket.id,
       name: user ? user.displayName : userName,
+      admin: data.admin,
       reads: false,
       picking: false,
       score: 0,
@@ -83,8 +81,6 @@ function App() {
       addPlayer(player)
 
       joinRoom(player, data.roomId)
-
-      console.log('Joined:', data.roomId);
     }
   }
 
@@ -98,7 +94,7 @@ function App() {
     if (userName.length !== 0 || user.displayName) {
       setChooseName(false);
       if (roomQuery) {
-        join({ room: undefined, roomId: roomQuery });
+        join({ room: undefined, roomId: roomQuery, admin: false });
       } else {
         create();
       }
@@ -379,7 +375,7 @@ function App() {
                       <></>
                       :
                       <p>Waiting for {minPlayers - value.players.length} more players to join </p>}
-                    {isAdmin ?
+                    {me.admin ?
                       <div>
                         {
                           (minPlayers - value.players.length) <= 0
@@ -395,10 +391,7 @@ function App() {
                         }
 
                         <button
-                          onClick={() => {
-                            console.log(inviteUrl + value.roomId)
-                            navigator.clipboard.writeText(inviteUrl + value.roomId);
-                          }}>
+                          onClick={() => navigator.clipboard.writeText(inviteUrl + value.roomId)}>
                           Invite
                         </button>
                       </div>
