@@ -42,4 +42,17 @@ export const socketEvents = ({ setValue, setJoined, setMe }) => {
             return { ...state }
         });
     });
+
+    socket.on('user-disconnected', (data) => {
+        const user = JSON.parse(localStorage.getItem('user'));
+        data.forEach(player => {
+            if (player.id === user.id) {
+                setMe(player)  // maybe i should setMe in App.js to avoid too many re-renders
+            }
+        });
+        setValue(state => {
+            state.players = data
+            return { ...state }
+        });
+    });
 };
