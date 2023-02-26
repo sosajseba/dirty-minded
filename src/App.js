@@ -6,9 +6,11 @@ import whiteCards from './data/whitecards.json';
 import Chat from './components/chat'
 import Players from './components/players';
 import SocketContext from './components/socket_context/context';
-import { v4 as uuidv4 } from 'uuid';
+import ShortUniqueId from 'short-unique-id';
 import { joinRoom, createRoom, updateRoom } from './components/sockets/emit';
 import { socket } from './components/sockets/index'
+
+const uid = new ShortUniqueId({ length: window._env_.REACT_APP_ROOM_ID_LENGHT });
 
 function App() {
 
@@ -32,15 +34,15 @@ function App() {
   //#region DONE
   function create() {
 
-    const roomId = uuidv4()
+    const roomId = uid();
 
     const room = {
       roomId: roomId,
-      blackCards: blackCards.sort(() => 0.5 - Math.random()),
+      blackCards: [],
       gameStarted: false,
       readerId: '',
       gameOver: false,
-      whiteCards: whiteCards.sort(() => 0.5 - Math.random()),
+      whiteCards: [],
       players: [],
       roomIsFull: false
     }
@@ -211,6 +213,8 @@ function App() {
 
   function setCurrentBlackCard() {
     let roomCopy = value;
+    roomCopy.blackCards = blackCards.sort(() => 0.5 - Math.random());
+    roomCopy.whiteCards = whiteCards.sort(() => 0.5 - Math.random());
     const firstCard = roomCopy.blackCards.slice(0, 1)[0];
     roomCopy.currentBlackCard = firstCard
     let lastBlackCards = roomCopy.blackCards.slice(1, roomCopy.blackCards.length);
