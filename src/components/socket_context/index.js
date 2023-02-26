@@ -8,7 +8,8 @@ const SocketProvider = (props) => {
         players: [],
         myId: '',
         roomId: '',
-        roomIsFull: false
+        roomIsFull: false,
+        gameStarted: false
     });
 
     const [joined, setJoined] = useState(false);
