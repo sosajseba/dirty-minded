@@ -10,10 +10,12 @@ const Chat = (props) => {
 
     const { value, addMessage } = useContext(SocketContext);
 
-    const sendMessage = message => {
+    const sendMessage = (event, data) => {
+        event.preventDefault();
+        setMessage('');
         if (nextReplyTime < Date.now()) {
-            addMessage(message)
-            emitMessage(message, value.roomId)
+            addMessage(data)
+            emitMessage(data, value.roomId)
             setNextReplyTime(addSeconds(Date.now(), 2000))
         } else {
             setSpam('Wait 2 seconds after the next message!');
@@ -36,10 +38,10 @@ const Chat = (props) => {
                         return <p key={'message' + index}>{message.name}: {message.text}</p>
                     })
                 }
-                <div className='chat-input'>
+                <form className='chat-input' onSubmit={e => sendMessage(e, { text: message, name: props.username })}>
                     <input type='text' value={message} onChange={e => setMessage(e.target.value)} />
-                    <button onClick={() => sendMessage({ text: message, name: props.username })}>Send</button>
-                </div>
+                    <button type="submit">Send</button>
+                </form>
                 {nextReplyTime > Date.now() ? <p>{spam}</p> : <></>}
             </div>
         </div>
