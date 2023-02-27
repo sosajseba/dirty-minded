@@ -9,8 +9,13 @@ import SocketContext from './components/socket_context/context';
 import ShortUniqueId from 'short-unique-id';
 import { joinRoom, createRoom, updateRoom } from './components/sockets/emit';
 import { socket } from './components/sockets/index'
+import ReactGA from 'react-ga'
 
 const uid = new ShortUniqueId({ length: window._env_.REACT_APP_ROOM_ID_LENGHT });
+
+if (window._env_.REACT_APP_ENVIRONMENT === 'production') {
+  ReactGA.initialize(window._env_.REACT_APP_GA_TRACKING_ID)
+}
 
 function App() {
 
@@ -23,7 +28,7 @@ function App() {
   const [bestCardIndex, setBestCardIndex] = useState();
   const [roundWinnerId, setRoundWinnerId] = useState();
 
-  const { me, joined, value, addPlayer, setRoom, setJoined, setMe } = useContext(SocketContext)
+  const { me, joined, value, addPlayer, setRoom, setJoined, setMe, getRandomPlayer } = useContext(SocketContext)
   //TODO: improve initial states in room and players
 
   const minPlayers = window._env_.REACT_APP_MIN_PLAYERS;
@@ -213,8 +218,10 @@ function App() {
 
   function setCurrentBlackCard() {
     let roomCopy = value;
-    roomCopy.blackCards = blackCards.sort(() => 0.5 - Math.random());
-    roomCopy.whiteCards = whiteCards.sort(() => 0.5 - Math.random());
+    if (roomCopy.gameStarted === false) {
+      roomCopy.blackCards = blackCards.sort(() => 0.5 - Math.random());
+      roomCopy.whiteCards = whiteCards.sort(() => 0.5 - Math.random());
+    }
     const firstCard = roomCopy.blackCards.slice(0, 1)[0];
     roomCopy.currentBlackCard = firstCard
     let lastBlackCards = roomCopy.blackCards.slice(1, roomCopy.blackCards.length);
@@ -314,7 +321,7 @@ function App() {
                       <p>Choose a white card..</p>
                       <div className='black-card'>
                         <div className='card-container'>
-                          {value.currentBlackCard.text.replace('{1}', '________')}
+                          {value.currentBlackCard.text.replace('{1}', '________').replace('{player}', getRandomPlayer().name)}
                         </div>
                       </div>
                       {
@@ -338,7 +345,7 @@ function App() {
                         <p>{getReaderName()} is choosing a white card..</p>
                         <div className='black-card'>
                           <div className='card-container'>
-                            {value.currentBlackCard.text.replace('{1}', '________')}
+                            {value.currentBlackCard.text.replace('{1}', '________').replace('{player}', getRandomPlayer().name)}
                           </div>
                         </div>
                         {
@@ -362,7 +369,7 @@ function App() {
                               return (
                                 <div className={'white-card' + cardIsSelected(index)} key={'whiteCard' + index} onClick={() => highlightMyCard(index)}>
                                   <div className='card-container' key={'cardContainer' + index}>
-                                    {card.text}
+                                    {card.text.replace('{player}', getRandomPlayer().name)}
                                   </div>
                                 </div>)
                             })
