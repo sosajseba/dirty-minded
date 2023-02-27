@@ -9,12 +9,12 @@ import SocketContext from './components/socket_context/context';
 import ShortUniqueId from 'short-unique-id';
 import { joinRoom, createRoom, updateRoom } from './components/sockets/emit';
 import { socket } from './components/sockets/index'
-import ReactGA from 'react-ga'
+import ReactGA from 'react-ga4'
 
 const uid = new ShortUniqueId({ length: window._env_.REACT_APP_ROOM_ID_LENGHT });
 
 if (window._env_.REACT_APP_ENVIRONMENT === 'production') {
-  ReactGA.initialize(window._env_.REACT_APP_GA_TRACKING_ID)
+ ReactGA.initialize(window._env_.REACT_APP_GA_TRACKING_ID)
 }
 
 function App() {
