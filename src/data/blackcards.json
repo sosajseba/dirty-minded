@@ -30,7 +30,7 @@
         "text": "Según la Organizacion Mundial de la Salud no hay nada más peligroso que {1}."
     },
     {
-        "text": "Lo que más excita a (nombrá a un jugador de la sala) es {1}."
+        "text": "Lo que más excita a {player} es {1}."
     },
     {
         "text": "Mi vida sexual es comprable a {1}."
@@ -63,15 +63,14 @@
         "text": "Club Atlético {1}."
     },
     {
-        "text": "Trágico accidente deja é5 heridos. La causa: {1}."
+        "text": "Trágico accidente deja 35 heridos. La causa: {1}."
     },
     {
-        "text": "El médico me dijo que fue un milagro, pero de ahira en más, nada de {1}."
+        "text": "El médico me dijo que fue un milagro, pero de ahora en más, nada de {1}."
     },
     {
         "text": "En el cine están dando {1} III."
-    }
-    ,
+    },
     {
         "text": "En lugar de rendir el final tuvimos que preparar una monografía sobre {1}."
     },
@@ -100,15 +99,14 @@
         "text": "No te puedo explicar el asco que me da {1}."
     },
     {
-        "text": "Y el Premio {1} es para {2}."
+        "text": "Y el Premio {1} es para: {player}!"
     },
     {
         "text": "Acabo de terminar de leer una novela erótica sobre {1}."
     },
     {
         "text": "El presidente reemplazó los cuadros de la Casa Rosada por cuadros de {1}."
-    }
-    ,
+    },
     {
         "text": "Solo dos cosas pueden lastimar a Superman: la kriptonita y {1}."
     },
@@ -116,10 +114,7 @@
         "text": "#{1}."
     },
     {
-        "text": "Mi libro se va a llamar: \"{1}, una historia sobre {2}\"."
-    },
-    {
-        "text": "Lo que más bronca le da a (nombrá a un jugador de la sala) es: {1}."
+        "text": "Lo que más bronca le da a {player} es: {1}."
     },
     {
         "text": "¿Cuál es tu secreto para ser tan sexy?"
@@ -128,7 +123,7 @@
         "text": "Hoy en yoga aprendimos tres posturas nuevas. La grulla, el loto y {1}."
     },
     {
-        "text": "(Nombrá a un jugador de la sala) usa el mismo password para todo: {1}."
+        "text": "{player} usa el mismo password para todo: {1}."
     },
     {
         "text": "Olmedo y Porcel presentan: A las chicas les gusta {1}."
@@ -144,8 +139,7 @@
     },
     {
         "text": "Lo más difícil de ser ciego debe ser {1}."
-    }
-    ,
+    },
     {
         "text": "¿De qué fue testigo Jehová?"
     },
@@ -162,9 +156,6 @@
         "text": "Dios perdona, {1}."
     },
     {
-        "text": "Gran pelea en el Luna Park: \"{1}\" Calderón vs. \"{2}\" Salazar."
-    },
-    {
         "text": "De los caballeros de la mesa redonda, mi favorito es Sir {1}."
     },
     {
@@ -174,13 +165,10 @@
         "text": "El tiburón más grande es el tiburón ballena. Pero el más raro es el tiburón {1}."
     },
     {
-        "text": "Científicos crearon un robot mitad {1} mitad {2}."
+        "text": "Científicos crearon un robot mitad {1} mitad {player}."
     },
     {
         "text": "El problema de la Iglesia es que está controlada por {1}."
-    },
-    {
-        "text": "Nos conocimos en una fiesta de disfraces. Se disfrazó de {1} y yo de {2}."
     },
     {
         "text": "Cuando tenia tiempo, en lugar de la Z el Zorro te dibujaba {1}."
@@ -198,15 +186,6 @@
         "text": "¿Qué tiene que tener tu pareja ideal?"
     },
     {
-        "text": "Qué ganas de hacer un trío con {1} y {2}."
-    },
-    {
-        "text": "Almuerzan hoy con la señora: {1} y {2}."
-    },
-    {
-        "text": "La nueva pareja del Bailando: {1} y {2}."
-    },
-    {
         "text": "Lo único qye a Los Pumas les gusta más que cantar el himno es {1}."
     },
     {
@@ -222,7 +201,7 @@
         "text": "Arqueólogos descubren que los antiguos egipcios amaban {1}."
     },
     {
-        "text": "¿Qué cosa es legar pero va a dejar de serlo en 1ó años?"
+        "text": "¿Qué cosa es legar pero va a dejar de serlo en 10 años?"
     },
     {
         "text": "El mundo sería un mejor lugar sin {1}."
@@ -231,13 +210,10 @@
         "text": "Cuando era chico todos los años le pedía a Papá Noel lo mismo: {1}."
     },
     {
-        "text": "El piropo más raro que me dijeron: \"Quisiera ser {1} para {2} con vos \"."
-    },
-    {
         "text": "Mi viejo siempre decía : \"En la mesa no se habla de política ni de {1}\"."
     },
     {
-        "text": "No sé si es el momento para decirlo, pero ayer (nombrá a un jugador de la sala) me contó que tiene pesadillas recurrentes con {1}."
+        "text": "No sé si es el momento para decirlo, pero ayer {player} me contó que tiene pesadillas recurrentes con {1}."
     },
     {
         "text": "La verdad es que soy un privilegiado, vivo de {1}."
