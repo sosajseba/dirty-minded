@@ -15,3 +15,11 @@ export const createRoom = (room) => {
 export const updateRoom = (room) => {
     socket.emit('update-room', room);
 };
+
+export const initialSortCards = (randomValue) => {
+    socket.emit('initial-sort-cards', randomValue);
+};
+
+export const distributeCards = (data) => {
+    socket.emit('distribute-cards', data);
+};
