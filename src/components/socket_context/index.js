@@ -8,7 +8,8 @@ const SocketProvider = (props) => {
         players: [],
         myId: '',
         roomId: '',
-        roomIsFull: false
+        roomIsFull: false,
+        gameStarted: false
     });
 
     const [joined, setJoined] = useState(false);
@@ -43,6 +44,10 @@ const SocketProvider = (props) => {
         });
     }
 
+    const getRandomPlayer = () => {
+        return value.players[Math.floor(Math.random() * value.players.length)]
+    }
+
     useEffect(() => {
         initSockets({ me, setValue, setJoined, setMe })
     }, [initSockets]);
@@ -50,7 +55,7 @@ const SocketProvider = (props) => {
     useEffect(() => {
     }, [me]);
 
-    const values = { me, joined, value, addMessage, addPlayer, setRoom, setJoined, setMe };
+    const values = { me, joined, value, addMessage, addPlayer, setRoom, setJoined, setMe, getRandomPlayer };
 
     return (
         <SocketContext.Provider value={values}>

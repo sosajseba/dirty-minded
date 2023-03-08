@@ -1,9 +1,10 @@
-on: 
+on:
   pull_request:
+    types: [closed]
     branches:
     - main
     - develop
-name: ${{ github.repository }}-action
+name: dirty-minded-workflow
 jobs:
   build-and-push:
     name: build and push image
@@ -14,7 +15,7 @@ jobs:
     - uses: mr-smithers-excellent/docker-build-push@v5
       name: Build & push Docker image
       with:
-        image: ${{ secrets.DOCKER_USERNAME }}/${{ github.repository }}
+        image: sosajseba/dirty-minded
         tags: v1, latest
         registry: docker.io
         username: ${{ secrets.DOCKER_USERNAME }}

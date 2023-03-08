@@ -6,9 +6,11 @@ import whiteCards from './data/whitecards.json';
 import Chat from './components/chat'
 import Players from './components/players';
 import SocketContext from './components/socket_context/context';
-import { v4 as uuidv4 } from 'uuid';
+import ShortUniqueId from 'short-unique-id';
 import { joinRoom, createRoom, updateRoom } from './components/sockets/emit';
 import { socket } from './components/sockets/index'
+
+const uid = new ShortUniqueId({ length: window._env_.REACT_APP_ROOM_ID_LENGHT });
 
 function App() {
 
@@ -17,12 +19,11 @@ function App() {
   const [searchParams] = useSearchParams();
   const [roomQuery] = useState(searchParams.get('room'));
   const [chooseName, setChooseName] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
   const [selectedCardIndex, setSelectedCardIndex] = useState();
   const [bestCardIndex, setBestCardIndex] = useState();
   const [roundWinnerId, setRoundWinnerId] = useState();
 
-  const { me, joined, value, addPlayer, setRoom, setJoined, setMe } = useContext(SocketContext)
+  const { me, joined, value, addPlayer, setRoom, setJoined, setMe, getRandomPlayer } = useContext(SocketContext)
   //TODO: improve initial states in room and players
 
   const minPlayers = window._env_.REACT_APP_MIN_PLAYERS;
@@ -33,22 +34,20 @@ function App() {
   //#region DONE
   function create() {
 
-    const roomId = uuidv4()
+    const roomId = uid();
 
     const room = {
       roomId: roomId,
-      blackCards: blackCards.sort(() => 0.5 - Math.random()),
+      blackCards: [],
       gameStarted: false,
       readerId: '',
       gameOver: false,
-      whiteCards: whiteCards.sort(() => 0.5 - Math.random()),
+      whiteCards: [],
       players: [],
       roomIsFull: false
     }
 
-    setIsAdmin(true);
-
-    join({ room: room, roomId: roomId })
+    join({ room: room, roomId: roomId, admin: true })
 
   }
 
@@ -56,6 +55,7 @@ function App() {
     const player = {
       id: socket.id,
       name: user ? user.displayName : userName,
+      admin: data.admin,
       reads: false,
       picking: false,
       score: 0,
@@ -83,8 +83,6 @@ function App() {
       addPlayer(player)
 
       joinRoom(player, data.roomId)
-
-      console.log('Joined:', data.roomId);
     }
   }
 
@@ -98,7 +96,7 @@ function App() {
     if (userName.length !== 0 || user.displayName) {
       setChooseName(false);
       if (roomQuery) {
-        join({ room: undefined, roomId: roomQuery });
+        join({ room: undefined, roomId: roomQuery, admin: false });
       } else {
         create();
       }
@@ -215,6 +213,10 @@ function App() {
 
   function setCurrentBlackCard() {
     let roomCopy = value;
+    if (roomCopy.gameStarted === false) {
+      roomCopy.blackCards = blackCards.sort(() => 0.5 - Math.random());
+      roomCopy.whiteCards = whiteCards.sort(() => 0.5 - Math.random());
+    }
     const firstCard = roomCopy.blackCards.slice(0, 1)[0];
     roomCopy.currentBlackCard = firstCard
     let lastBlackCards = roomCopy.blackCards.slice(1, roomCopy.blackCards.length);
@@ -314,7 +316,7 @@ function App() {
                       <p>Choose a white card..</p>
                       <div className='black-card'>
                         <div className='card-container'>
-                          {value.currentBlackCard.text.replace('{1}', '________')}
+                          {value.currentBlackCard.text.replace('{1}', '________').replace('{player}', getRandomPlayer().name)}
                         </div>
                       </div>
                       {
@@ -338,7 +340,7 @@ function App() {
                         <p>{getReaderName()} is choosing a white card..</p>
                         <div className='black-card'>
                           <div className='card-container'>
-                            {value.currentBlackCard.text.replace('{1}', '________')}
+                            {value.currentBlackCard.text.replace('{1}', '________').replace('{player}', getRandomPlayer().name)}
                           </div>
                         </div>
                         {
@@ -362,7 +364,7 @@ function App() {
                               return (
                                 <div className={'white-card' + cardIsSelected(index)} key={'whiteCard' + index} onClick={() => highlightMyCard(index)}>
                                   <div className='card-container' key={'cardContainer' + index}>
-                                    {card.text}
+                                    {card.text.replace('{player}', getRandomPlayer().name)}
                                   </div>
                                 </div>)
                             })
@@ -379,7 +381,7 @@ function App() {
                       <></>
                       :
                       <p>Waiting for {minPlayers - value.players.length} more players to join </p>}
-                    {isAdmin ?
+                    {me.admin ?
                       <div>
                         {
                           (minPlayers - value.players.length) <= 0
@@ -395,10 +397,7 @@ function App() {
                         }
 
                         <button
-                          onClick={() => {
-                            console.log(inviteUrl + value.roomId)
-                            navigator.clipboard.writeText(inviteUrl + value.roomId);
-                          }}>
+                          onClick={() => navigator.clipboard.writeText(inviteUrl + value.roomId)}>
                           Invite
                         </button>
                       </div>
