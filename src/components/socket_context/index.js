@@ -41,8 +41,6 @@ const SocketProvider = (props) => {
         setValue(state => {
             state.roomId = room.roomId
             state.players = room.players
-            //state.blackCards = room.blackCards
-            //state.whiteCards = room.whiteCards
             state.gameStarted = room.gameStarted
             state.gameOver = room.gameOver
             state.readerId = room.readerId
