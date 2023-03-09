@@ -3,12 +3,20 @@ import { useContext, useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import blackCards from './data/blackcards.json';
 import whiteCards from './data/whitecards.json';
+import bcpositions from './data/bcpositions.json';
+import wcpositions from './data/wcpositions.json';
 import Chat from './components/chat'
 import Players from './components/players';
 import SocketContext from './components/socket_context/context';
 import ShortUniqueId from 'short-unique-id';
-import { joinRoom, createRoom, updateRoom } from './components/sockets/emit';
+import {
+  emitJoinRoom, emitCreateRoom, emitInitialCardsOrder,
+  emitCurrentBlackCard, emitFirstTurn, emitCardsDistribution,
+  emitCardsReplacement, emitNextTurn, emitPlayerPickedWhiteCard,
+  emitWinnerGetsOnePoint
+} from './components/sockets/emit';
 import { socket } from './components/sockets/index'
+import { shuffle } from './utils/utils';
 
 const uid = new ShortUniqueId({ length: window._env_.REACT_APP_ROOM_ID_LENGHT });
 
@@ -24,27 +32,26 @@ function App() {
   const [roundWinnerId, setRoundWinnerId] = useState();
 
   const { me, joined, value, addPlayer, setRoom, setJoined, setMe, getRandomPlayer } = useContext(SocketContext)
-  //TODO: improve initial states in room and players
 
   const minPlayers = window._env_.REACT_APP_MIN_PLAYERS;
   const maxPlayers = window._env_.REACT_APP_MAX_PLAYERS;
-  const cardsPerPlayer = window._env_.REACT_APP_CARDS_PER_PLAYER;
   const inviteUrl = window._env_.REACT_APP_INVITE_URL;
 
-  //#region DONE
   function create() {
 
     const roomId = uid();
 
     const room = {
-      roomId: roomId,
       blackCards: [],
-      gameStarted: false,
-      readerId: '',
+      currentBlackCard: undefined,
       gameOver: false,
-      whiteCards: [],
+      gameStarted: false,
       players: [],
-      roomIsFull: false
+      readerId: '',
+      roomId: roomId,
+      roomIsFull: false,
+      round: 0,
+      whiteCards: [],
     }
 
     join({ room: room, roomId: roomId, admin: true })
@@ -53,13 +60,13 @@ function App() {
 
   function join(data) {
     const player = {
+      admin: data.admin,
       id: socket.id,
       name: user ? user.displayName : userName,
-      admin: data.admin,
-      reads: false,
+      pickedCard: undefined,
       picking: false,
+      reads: false,
       score: 0,
-      cards: []
     }
 
     const updateUsr = { displayName: player.name, id: player.id }
@@ -73,16 +80,18 @@ function App() {
       data.room.players.push(player);
 
       setJoined(true)
-
+      
       setRoom(data.room);
 
-      createRoom(data.room);
+      emitCreateRoom(data.room);
 
     } else {
 
       addPlayer(player)
 
-      joinRoom(player, data.roomId)
+      setJoined(true)
+
+      emitJoinRoom(player, data.roomId)
     }
   }
 
@@ -105,124 +114,36 @@ function App() {
       setChooseName(true);
     }
   }
-  //#endregion DONE
 
   function setupGame() {
     setCurrentBlackCard();
     if (value.players.length >= minPlayers && value.gameStarted === false) {
-      firstTurn();
-      distributeCards();
+      emitFirstTurn();
+      emitCardsDistribution();
     } else {
-      replenishCards();
-      nextTurn();
-    }
-  }
-
-  function replenishCards() {
-    let roomCopy = value;
-    roomCopy.players.forEach(player => {
-      if (player.cards.length < cardsPerPlayer) {
-        const firstCards = roomCopy.whiteCards.slice(0, 1);
-        let lastCards = roomCopy.whiteCards.slice(1, roomCopy.whiteCards.length);
-        player.cards = player.cards.concat(firstCards);
-        lastCards = lastCards.concat(firstCards);
-        roomCopy.whiteCards = lastCards;
+      emitCardsReplacement();
+      if (value.gameOver === false) {
+        setRoundWinnerId(null);
+        emitNextTurn()
       }
-    });
-    updateRoom(roomCopy);
-  }
-
-  function firstTurn() {
-    let roomCopy = value;
-    let playersCopy = value.players;
-    playersCopy[1].reads = true;
-    roomCopy.readerId = playersCopy[1].id
-    playersCopy.forEach(player => {
-      if (player.reads !== true) {
-        player.picking = true;
-      }
-    });
-    roomCopy.players = playersCopy
-    updateRoom(roomCopy);
-  }
-
-  function nextTurn() {
-    if (value.gameOver === false) {
-      setRoundWinnerId(null);
-      let roomCopy = value;
-      let playersCopy = value.players;
-      for (let i = 0; i < playersCopy.length; i++) {
-        if (playersCopy[i].reads === true) {
-          playersCopy[i].reads = false;
-          if (playersCopy.length - 1 === i) {
-            playersCopy[0].reads = true;
-            roomCopy.readerId = playersCopy[0].id
-          } else {
-            playersCopy[i + 1].reads = true;
-            roomCopy.readerId = playersCopy[i + 1].id
-          }
-          break;
-        }
-      }
-      playersCopy.forEach(player => {
-        if (player.reads === false) {
-          player.picking = true;
-        }
-      });
-      roomCopy.players = playersCopy
-      updateRoom(roomCopy)
     }
   }
 
   function winnerGetsOnePoint() {
     if (bestCardIndex != null) {
       setBestCardIndex(null);
-      let roomCopy = value
-      let winner;
-      roomCopy.players.forEach(player => {
-        if (player.id === roundWinnerId) {
-          player.score += 1;
-          winner = player
-        }
-      });
-
-      if (winner.score === 5) {
-        roomCopy.winner = winner
-        roomCopy.gameOver = true;
-        updateRoom(roomCopy);
-      }
-      else {
-        updateRoom(roomCopy);
-        setupGame();
-      }
+      emitWinnerGetsOnePoint(roundWinnerId);
+      setupGame();
     }
-  }
-
-  function distributeCards() {
-    let roomCopy = value;
-    roomCopy.gameStarted = true;
-    roomCopy.players.forEach(player => {
-      const firstCards = roomCopy.whiteCards.slice(0, cardsPerPlayer);
-      let lastCards = roomCopy.whiteCards.slice(cardsPerPlayer, roomCopy.whiteCards.length);
-      player.cards = firstCards;
-      lastCards = lastCards.concat(firstCards);
-      roomCopy.whiteCards = lastCards;
-    });
-    updateRoom(roomCopy);
   }
 
   function setCurrentBlackCard() {
-    let roomCopy = value;
-    if (roomCopy.gameStarted === false) {
-      roomCopy.blackCards = blackCards.sort(() => 0.5 - Math.random());
-      roomCopy.whiteCards = whiteCards.sort(() => 0.5 - Math.random());
+    if (value.gameStarted === false) {
+      const bcOrder = shuffle(shuffle(bcpositions, Math.random()), Math.random())
+      const wcOrder = shuffle(shuffle(wcpositions, Math.random()), Math.random())
+      emitInitialCardsOrder({ whiteCards: wcOrder, blackCards: bcOrder });
     }
-    const firstCard = roomCopy.blackCards.slice(0, 1)[0];
-    roomCopy.currentBlackCard = firstCard
-    let lastBlackCards = roomCopy.blackCards.slice(1, roomCopy.blackCards.length);
-    lastBlackCards.push(firstCard);
-    roomCopy.blackCards = lastBlackCards;
-    updateRoom(roomCopy);
+    emitCurrentBlackCard(value.roomId);
   }
 
   function getReaderName() {
@@ -230,32 +151,28 @@ function App() {
     if (reader.length > 0) {
       return reader[0].name;
     }
-    return "Unknown";
-    //TODO: it may be of no use
   }
 
   function pickWhiteCard(cardIndex) {
     if (selectedCardIndex != null) {
-      if (me.picking === true) {
+      if (getMe().picking === true) {
         setSelectedCardIndex(null)
-        let roomCopy = value;
-        roomCopy.players.forEach(player => {
-          if (player.id === me.id) {
-            player.picking = false;
-            player.pickedCard = player.cards[cardIndex];
-            player.cards.splice(cardIndex, 1);
-          }
-        });
-        updateRoom(roomCopy);
+        emitPlayerPickedWhiteCard({ playerId: me.id, cardIndex: me.cards[cardIndex] });
+        setMe(me => {
+          me.cards.splice(cardIndex, 1);
+          return { ...me }
+        })
       }
     }
   }
 
   function highlightMyCard(cardIndex) {
-    if (me.picking === true) {
+    if (getMe().picking === true) { // double check
       setSelectedCardIndex(cardIndex)
     }
   }
+
+  const getMe = () => value.players.filter(x => x.id === me.id)[0];
 
   function highlightBestCard(cardIndex, winnerId) {
     if (everyonePicked() === true) {
@@ -279,7 +196,8 @@ function App() {
   }
 
   function cardIsSelected(index) {
-    return selectedCardIndex != null ? (index === selectedCardIndex ? ' highlight' : '') : ''
+    var highlight = selectedCardIndex != null ? (index === selectedCardIndex ? ' highlight' : '') : ''
+    return highlight;
   }
 
   useEffect(() => {
@@ -316,7 +234,7 @@ function App() {
                       <p>Choose a white card..</p>
                       <div className='black-card'>
                         <div className='card-container'>
-                          {value.currentBlackCard.text.replace('{1}', '________').replace('{player}', getRandomPlayer().name)}
+                          {blackCards[value.currentBlackCard].text.replace('{1}', '________').replace('{player}', getRandomPlayer().name)}
                         </div>
                       </div>
                       {
@@ -325,7 +243,7 @@ function App() {
                             player.id !== me.id ?
                               <div className={'white-card' + bestCardIsSelected(index)} key={'pickWhiteCard' + index} onClick={() => highlightBestCard(index, player.id)}>
                                 <div className='card-container' key={'cardContainer' + index}>
-                                  {player.picking === true ? player.name + ' is choosing..' : player.pickedCard.text}
+                                  {player.picking === true ? player.name + ' is choosing..' : whiteCards[player?.pickedCard]?.text}
                                 </div>
                               </div>
                               : <></>
@@ -340,7 +258,7 @@ function App() {
                         <p>{getReaderName()} is choosing a white card..</p>
                         <div className='black-card'>
                           <div className='card-container'>
-                            {value.currentBlackCard.text.replace('{1}', '________').replace('{player}', getRandomPlayer().name)}
+                            {blackCards[value.currentBlackCard].text.replace('{1}', '________').replace('{player}', getRandomPlayer().name)}
                           </div>
                         </div>
                         {
@@ -349,7 +267,7 @@ function App() {
                               player.id !== value.readerId ?
                                 <div className='white-card' key={'pickWhiteCard' + index}>
                                   <div className='card-container' key={'cardContainer' + index}>
-                                    {player.picking === true ? player.name + ' is choosing..' : player.pickedCard.text}
+                                    {player.picking === true ? player.name + ' is choosing..' : whiteCards[player?.pickedCard]?.text}
                                   </div>
                                 </div>
                                 : <></>
@@ -364,7 +282,7 @@ function App() {
                               return (
                                 <div className={'white-card' + cardIsSelected(index)} key={'whiteCard' + index} onClick={() => highlightMyCard(index)}>
                                   <div className='card-container' key={'cardContainer' + index}>
-                                    {card.text.replace('{player}', getRandomPlayer().name)}
+                                    {whiteCards[card].text.replace('{player}', getRandomPlayer().name)}
                                   </div>
                                 </div>)
                             })
@@ -381,7 +299,7 @@ function App() {
                       <></>
                       :
                       <p>Waiting for {minPlayers - value.players.length} more players to join </p>}
-                    {me.admin ?
+                    {getMe().admin ?
                       <div>
                         {
                           (minPlayers - value.players.length) <= 0
