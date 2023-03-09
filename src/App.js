@@ -258,7 +258,7 @@ function App() {
                         <p>{getReaderName()} is choosing a white card..</p>
                         <div className='black-card'>
                           <div className='card-container'>
-                            {blackCards[value.currentBlackCard].text.replace('{1}', '________').replace('{player}', getRandomPlayer().name)}
+                            {blackCards[value.currentBlackCard]?.text.replace('{1}', '________').replace('{player}', getRandomPlayer().name)}
                           </div>
                         </div>
                         {
