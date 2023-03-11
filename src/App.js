@@ -8,112 +8,28 @@ import wcpositions from './data/wcpositions.json';
 import Chat from './components/chat'
 import Players from './components/players';
 import SocketContext from './components/socket_context/context';
-import ShortUniqueId from 'short-unique-id';
 import {
-  emitJoinRoom, emitCreateRoom, emitInitialCardsOrder,
-  emitCurrentBlackCard, emitFirstTurn, emitCardsDistribution,
-  emitCardsReplacement, emitNextTurn, emitPlayerPickedWhiteCard,
-  emitWinnerGetsOnePoint
+  emitInitialCardsOrder, emitCurrentBlackCard, emitFirstTurn,
+  emitCardsDistribution, emitCardsReplacement, emitNextTurn,
+  emitPlayerPickedWhiteCard, emitWinnerGetsOnePoint
 } from './components/sockets/emit';
-import { socket } from './components/sockets/index'
 import { shuffle } from './utils/utils';
-
-const uid = new ShortUniqueId({ length: window._env_.REACT_APP_ROOM_ID_LENGHT });
+import RoomIsFull from './components/room-full';
+import Home from './components/home';
 
 function App() {
 
-  const [user, setUser] = useState();
-  const [userName, setUserName] = useState('');
   const [searchParams] = useSearchParams();
   const [roomQuery] = useState(searchParams.get('room'));
-  const [chooseName, setChooseName] = useState(false);
   const [selectedCardIndex, setSelectedCardIndex] = useState();
   const [bestCardIndex, setBestCardIndex] = useState();
   const [roundWinnerId, setRoundWinnerId] = useState();
 
-  const { me, joined, value, addPlayer, setRoom, setJoined, setMe, getRandomPlayer } = useContext(SocketContext)
+  const { me, joined, value, setMe, setUser } = useContext(SocketContext)
 
   const minPlayers = window._env_.REACT_APP_MIN_PLAYERS;
   const maxPlayers = window._env_.REACT_APP_MAX_PLAYERS;
   const inviteUrl = window._env_.REACT_APP_INVITE_URL;
-
-  function create() {
-
-    const roomId = uid();
-
-    const room = {
-      blackCards: [],
-      currentBlackCard: undefined,
-      gameOver: false,
-      gameStarted: false,
-      players: [],
-      readerId: '',
-      roomId: roomId,
-      roomIsFull: false,
-      round: 0,
-      whiteCards: [],
-    }
-
-    join({ room: room, roomId: roomId, admin: true })
-
-  }
-
-  function join(data) {
-    const player = {
-      admin: data.admin,
-      id: socket.id,
-      name: user ? user.displayName : userName,
-      pickedCard: undefined,
-      picking: false,
-      reads: false,
-      score: 0,
-    }
-
-    const updateUsr = { displayName: player.name, id: player.id }
-    localStorage.setItem('user', JSON.stringify(updateUsr));
-    setUser(updateUsr);
-
-    setMe(player);
-
-    if (data.room) {
-
-      data.room.players.push(player);
-
-      setJoined(true)
-      
-      setRoom(data.room);
-
-      emitCreateRoom(data.room);
-
-    } else {
-
-      addPlayer(player)
-
-      setJoined(true)
-
-      emitJoinRoom(player, data.roomId)
-    }
-  }
-
-  function changeDisplayName() {
-    if (!user) {
-      const newUsr = { displayName: userName, id: socket.id }
-      localStorage.setItem('user', JSON.stringify(newUsr));
-      setUser(newUsr);
-    }
-
-    if (userName.length !== 0 || user.displayName) {
-      setChooseName(false);
-      if (roomQuery) {
-        join({ room: undefined, roomId: roomQuery, admin: false });
-      } else {
-        create();
-      }
-    }
-    else {
-      setChooseName(true);
-    }
-  }
 
   function setupGame() {
     setCurrentBlackCard();
@@ -215,8 +131,8 @@ function App() {
       {joined ?
         <div>
           <div className='wrapper'>
-            <Chat username={user.displayName} />
-            <Players />
+            <Chat />
+            <Players title="Players:" />
           </div>
 
           <div className='wrapper'>
@@ -234,7 +150,7 @@ function App() {
                       <p>Choose a white card..</p>
                       <div className='black-card'>
                         <div className='card-container'>
-                          {blackCards[value.currentBlackCard].text.replace('{1}', '________').replace('{player}', getRandomPlayer().name)}
+                          {blackCards[value.currentBlackCard]?.text.replace('{1}', '________')}
                         </div>
                       </div>
                       {
@@ -258,7 +174,7 @@ function App() {
                         <p>{getReaderName()} is choosing a white card..</p>
                         <div className='black-card'>
                           <div className='card-container'>
-                            {blackCards[value.currentBlackCard]?.text.replace('{1}', '________').replace('{player}', getRandomPlayer().name)}
+                            {blackCards[value.currentBlackCard]?.text.replace('{1}', '________')}
                           </div>
                         </div>
                         {
@@ -282,7 +198,7 @@ function App() {
                               return (
                                 <div className={'white-card' + cardIsSelected(index)} key={'whiteCard' + index} onClick={() => highlightMyCard(index)}>
                                   <div className='card-container' key={'cardContainer' + index}>
-                                    {whiteCards[card].text.replace('{player}', getRandomPlayer().name)}
+                                    {whiteCards[card].text}
                                   </div>
                                 </div>)
                             })
@@ -329,24 +245,7 @@ function App() {
           </div>
         </div>
         :
-        (value.roomIsFull ?
-          <div>
-            Room is full :C
-          </div>
-          :
-          (user ?
-            <>
-              Hi {user.displayName}!
-              <button onClick={changeDisplayName}>{roomQuery ? 'Join room' : 'Create room'}</button>
-            </> :
-            <>
-              Pick a name!
-              <input type='text' value={userName} onChange={event => setUserName(event.target.value)} />
-              {chooseName ? <span>You must pick a name to continue!<br /></span> : <></>}
-              <button onClick={changeDisplayName}>{roomQuery ? 'Join room' : 'Create room'}</button>
-            </>
-          )
-        )
+        (value.roomIsFull ? <RoomIsFull /> : <Home roomId={roomQuery} />)
       }
     </div>
   );
