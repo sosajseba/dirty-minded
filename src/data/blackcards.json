@@ -30,9 +30,6 @@
         "text": "Según la Organizacion Mundial de la Salud no hay nada más peligroso que {1}."
     },
     {
-        "text": "Lo que más excita a {player} es {1}."
-    },
-    {
         "text": "Mi vida sexual es comprable a {1}."
     },
     {
@@ -99,9 +96,6 @@
         "text": "No te puedo explicar el asco que me da {1}."
     },
     {
-        "text": "Y el Premio {1} es para: {player}!"
-    },
-    {
         "text": "Acabo de terminar de leer una novela erótica sobre {1}."
     },
     {
@@ -114,16 +108,10 @@
         "text": "#{1}."
     },
     {
-        "text": "Lo que más bronca le da a {player} es: {1}."
-    },
-    {
         "text": "¿Cuál es tu secreto para ser tan sexy?"
     },
     {
         "text": "Hoy en yoga aprendimos tres posturas nuevas. La grulla, el loto y {1}."
-    },
-    {
-        "text": "{player} usa el mismo password para todo: {1}."
     },
     {
         "text": "Olmedo y Porcel presentan: A las chicas les gusta {1}."
@@ -165,9 +153,6 @@
         "text": "El tiburón más grande es el tiburón ballena. Pero el más raro es el tiburón {1}."
     },
     {
-        "text": "Científicos crearon un robot mitad {1} mitad {player}."
-    },
-    {
         "text": "El problema de la Iglesia es que está controlada por {1}."
     },
     {
@@ -186,7 +171,7 @@
         "text": "¿Qué tiene que tener tu pareja ideal?"
     },
     {
-        "text": "Lo único qye a Los Pumas les gusta más que cantar el himno es {1}."
+        "text": "Lo único que a Los Pumas les gusta más que cantar el himno es {1}."
     },
     {
         "text": "El homeópata me recomendó {1}."
@@ -211,9 +196,6 @@
     },
     {
         "text": "Mi viejo siempre decía : \"En la mesa no se habla de política ni de {1}\"."
-    },
-    {
-        "text": "No sé si es el momento para decirlo, pero ayer {player} me contó que tiene pesadillas recurrentes con {1}."
     },
     {
         "text": "La verdad es que soy un privilegiado, vivo de {1}."
