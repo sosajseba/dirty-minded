@@ -2,7 +2,7 @@ import React from 'react'
 
 const Player = (props) => {
 
-    return <p className={props.player.reads ? 'reader' : ''}>{`${props.player.name} (${props.player.score})`}</p>
+    return <p className={props.player.id === props.reader ? 'reader' : ''}>{`${props.player.name} (${props.player.score})`}</p>
 
 }
 

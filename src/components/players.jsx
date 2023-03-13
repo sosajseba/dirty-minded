@@ -11,7 +11,7 @@ const Players = (props) => {
             <p>{props.title}</p>
             {
                 value.players.map((player, index) => {
-                    return <Player key={'player' + index} player={player} />
+                    return <Player key={'player' + index} player={player} reader={value.readerId}/>
                 })
             }
         </div>
