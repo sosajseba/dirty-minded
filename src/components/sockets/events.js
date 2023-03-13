@@ -16,6 +16,7 @@ export const socketEvents = ({ setValue, setJoined, setMe }) => {
 
     socket.on('receive-cards-distribution', (cards) => {
         //console.log('receive-cards-distribution', roughSizeOfObject(cards))
+        //console.log('receive-cards-distribution', cards)
         setMe(me => {
             me.cards = cards;
             return { ...me }
@@ -28,6 +29,7 @@ export const socketEvents = ({ setValue, setJoined, setMe }) => {
 
     socket.on('receive-cards-replacement', (cards) => {
         //console.log('receive-cards-replacement', roughSizeOfObject(cards))
+        //console.log('receive-cards-replacement', cards)
         setMe(me => {
             me.cards = me.cards.concat(cards);
             return { ...me }
@@ -36,6 +38,7 @@ export const socketEvents = ({ setValue, setJoined, setMe }) => {
 
     socket.on('receive-new-player', (data) => {
         //console.log('receive-new-player', roughSizeOfObject(data))
+        //console.log('receive-new-player', data)
         setValue(state => {
             state.roomId = data.roomId;
             state.gameOver = false;
@@ -56,7 +59,7 @@ export const socketEvents = ({ setValue, setJoined, setMe }) => {
         setValue(state => {
             let playersCopy = state.players.filter(x => x.id !== data.disconnected);
             playersCopy.forEach(player => {
-                if(player.id === data.admin){
+                if (player.id === data.admin) {
                     player.admin = true;
                 }
             });
@@ -67,50 +70,26 @@ export const socketEvents = ({ setValue, setJoined, setMe }) => {
 
     socket.on('receive-current-black-card', (index) => {
         //console.log('receive-current-black-card', roughSizeOfObject(index))
+        //console.log('receive-current-black-card', index)
         setValue(state => {
             state.currentBlackCard = index;
             return { ...state }
         });
     });
 
-    socket.on('receive-first-turn', (index) => {
+    socket.on('receive-next-turn', (readerId) => {
+        //console.log('receive-next-turn', roughSizeOfObject(readerId))
+        //console.log('receive-next-turn', readerId)
         setValue(state => {
-            let roomCopy = state;
             let playersCopy = state.players;
-            roomCopy.players[index].reads = true;
-            roomCopy.readerId = playersCopy[index].id
             playersCopy.forEach(player => {
-                if (player.reads !== true) {
+                if (player.id === readerId) {
+                    player.picking = false;
+                } else {
                     player.picking = true;
                 }
             });
-            state.players = playersCopy;
-            return { ...state }
-        });
-    });
-
-    socket.on('receive-next-turn', () => {
-        setValue(state => {
-            let roomCopy = state;
-            let playersCopy = state.players;
-            for (let i = 0; i < playersCopy.length; i++) {
-                if (playersCopy[i].reads === true) {
-                    playersCopy[i].reads = false;
-                    if (playersCopy.length - 1 === i) {
-                        playersCopy[0].reads = true;
-                        roomCopy.readerId = playersCopy[0].id
-                    } else {
-                        playersCopy[i + 1].reads = true;
-                        roomCopy.readerId = playersCopy[i + 1].id
-                    }
-                    break;
-                }
-            }
-            playersCopy.forEach(player => {
-                if (player.reads === false) {
-                    player.picking = true;
-                }
-            });
+            state.readerId = readerId
             state.players = playersCopy
             return { ...state }
         });
@@ -118,6 +97,7 @@ export const socketEvents = ({ setValue, setJoined, setMe }) => {
 
     socket.on('receive-player-picked-white-card', (data) => {
         //console.log('receive-player-picked-white-card', roughSizeOfObject(data))
+        //console.log('receive-player-picked-white-card', data)
         setValue(state => {
             let playersCopy = state.players;
             playersCopy.forEach(player => {
@@ -133,6 +113,7 @@ export const socketEvents = ({ setValue, setJoined, setMe }) => {
 
     socket.on('receive-winner-gets-one-point', (roundWinnerId) => {
         //console.log('receive-winner-gets-one-point', roughSizeOfObject(roundWinnerId))
+        //console.log('receive-winner-gets-one-point', roundWinnerId)
         setValue(state => {
             let playersCopy = state.players;
             let winner;
@@ -147,7 +128,7 @@ export const socketEvents = ({ setValue, setJoined, setMe }) => {
                 state.winner = winner
                 state.gameOver = true;
             }
-            state.round++
+            state.round += 1;
             state.players = playersCopy;
             return { ...state }
         });
