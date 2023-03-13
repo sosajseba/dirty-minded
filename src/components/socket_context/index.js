@@ -22,6 +22,10 @@ const SocketProvider = (props) => {
 
     const [me, setMe] = useState();
 
+    const [user, setUser] = useState();
+
+    const [chooseName, setChooseName] = useState(false);
+
     const addMessage = (message) => {
         setValue(state => {
             const list = [message];
@@ -50,10 +54,6 @@ const SocketProvider = (props) => {
         });
     }
 
-    const getRandomPlayer = () => {
-        return value.players[Math.floor(Math.random() * value.players.length)]
-    }
-
     useEffect(() => {
         initSockets({ me, setValue, setJoined, setMe, setBlackCardsOrder, setWhiteCardsOrder })
     }, [initSockets]);
@@ -61,7 +61,7 @@ const SocketProvider = (props) => {
     useEffect(() => {
     }, [me]);
 
-    const values = { me, joined, value, blackCardsOrder, whiteCardsOrder, addMessage, addPlayer, setRoom, setJoined, setMe, getRandomPlayer, setBlackCardsOrder, setWhiteCardsOrder };
+    const values = { chooseName, user, me, joined, value, blackCardsOrder, whiteCardsOrder, setChooseName, addMessage, addPlayer, setRoom, setJoined, setMe, setUser, setBlackCardsOrder, setWhiteCardsOrder };
 
     return (
         <SocketContext.Provider value={values}>

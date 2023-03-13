@@ -1,14 +1,14 @@
-import React, { useContext, useEffect, useState } from 'react'
+import React, { useContext, useState } from 'react'
 import SocketContext from './socket_context/context';
 import { emitMessage } from './sockets/emit';
 
-const Chat = (props) => {
+const Chat = () => {
 
     const [message, setMessage] = useState('');
     const [nextReplyTime, setNextReplyTime] = useState(Date.now());
     const [spam, setSpam] = useState('');
 
-    const { value, addMessage } = useContext(SocketContext);
+    const { user, value, addMessage } = useContext(SocketContext);
 
     const sendMessage = (event, data) => {
         event.preventDefault();
@@ -16,13 +16,13 @@ const Chat = (props) => {
         if (nextReplyTime < Date.now()) {
             addMessage(data)
             emitMessage(data, value.roomId)
-            setNextReplyTime(addSeconds(Date.now(), 2000))
+            setNextReplyTime(addSeconds(Date.now(), 10000))
         } else {
-            setSpam('Wait 2 seconds after the next message!');
-            setNextReplyTime(addSeconds(Date.now(), 2000))
+            setSpam('Wait 10 seconds after the next message!');
+            setNextReplyTime(addSeconds(Date.now(), 10000))
             setTimeout(() => {
                 setSpam('')
-            }, 2000)
+            }, 10000)
         }
     }
 
@@ -38,8 +38,8 @@ const Chat = (props) => {
                         return <p key={'message' + index}>{message.name}: {message.text}</p>
                     })
                 }
-                <form className='chat-input' onSubmit={e => sendMessage(e, { text: message, name: props.username })}>
-                    <input type='text' value={message} onChange={e => setMessage(e.target.value)} />
+                <form className='chat-input' onSubmit={e => sendMessage(e, { text: message, name: user.displayName })}>
+                    <input type='text' value={message} onChange={e => setMessage(e.target.value)} maxLength={50}/>
                     <button type="submit">Send</button>
                 </form>
                 {nextReplyTime > Date.now() ? <p>{spam}</p> : <></>}
