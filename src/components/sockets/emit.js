@@ -20,8 +20,8 @@ export const emitNextTurn = () => {
     socket.emit('emit-next-turn', null);
 };
 
-export const emitCurrentBlackCard = (roomId) => {
-    socket.emit('emit-current-black-card', roomId);
+export const emitCurrentBlackCard = () => {
+    socket.emit('emit-current-black-card', null);
 };
 
 export const emitInitialCardsOrder = (data) => {
