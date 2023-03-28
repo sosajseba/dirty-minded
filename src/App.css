@@ -25,15 +25,15 @@
   float: left;
 }
 
-.player-box{
+.player-box {
   background: rgb(143, 230, 201);
 }
 
-.reader-box{
+.reader-box {
   background: rgb(231, 171, 102);
 }
 
-.winner{
+.winner {
   background: rgb(201, 111, 178);
 }
 
