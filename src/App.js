@@ -1,10 +1,12 @@
 import './App.css';
 import { useContext, useEffect, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import SocketContext from './components/socket_context/context';
 import RoomIsFull from './components/room-full';
 import Home from './components/home';
 import Game from './components/game';
+import '@fontsource/roboto';
+import './fonts/VerditerLavanda-Regular.ttf'
 
 function App() {
 
@@ -21,23 +23,17 @@ function App() {
   }, []);
 
   return (
-    <div className="App">
-      <header className="App-header">
-      </header>
-
-      {joined
-        ?
-        <Game />
-        :
-        (
-          value.roomIsFull
-            ?
-            <RoomIsFull />
-            :
-            <Home roomId={roomQuery} />
-        )
-      }
-    </div>
+    joined
+      ?
+      <Game />
+      :
+      (
+        value.roomIsFull
+          ?
+          <RoomIsFull />
+          :
+          <Home roomId={roomQuery} />
+      )
   );
 }
 
