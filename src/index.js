@@ -7,12 +7,11 @@ import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
 import Terms from './routes/terms';
 import SocketProvider from './components/socket_context';
 import Privacy from './routes/privacy';
-import Credits from './routes/credits';
+//import About from './routes/about';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <SocketProvider>
-
     <BrowserRouter>
       <div className='bg-cover w-screen h-screen' style={{ backgroundImage: 'url(site-background.svg)' }}>
         {/* <header className=''>
@@ -31,7 +30,7 @@ root.render(
               <Route path='/' element={<App />} />
               <Route path='terms' element={<Terms />} />
               <Route path='privacy' element={<Privacy />} />
-              <Route path='credits' element={<Credits />} />
+              {/* <Route path='about' element={<About />} /> */}
             </Routes>
           </div>
           <footer className='mx-auto p-2'>
@@ -49,13 +48,21 @@ root.render(
                   Privacidad
                 </Link>
               </li>
+              {/* <li>
+                <span className='mr-2 hover:underline'>|</span>
+              </li>
+              <li>
+                <Link className='mr-2 hover:underline' to='about'>
+                  Nosotros
+                </Link>
+              </li> */}
               <li>
                 <span className='mr-2 hover:underline'>|</span>
               </li>
               <li>
-                <Link className='mr-2 hover:underline' to='credits'>
-                  Nosotros
-                </Link>
+                <a className='mr-2 hover:underline' href="mailto:spazekatgames@gmail.com.com">
+                  Contacto
+                </a>
               </li>
               <li>
                 <span className='mr-2 hover:underline'>|</span>
@@ -76,7 +83,9 @@ root.render(
             </ul>
           </footer>
           <div className='absolute bottom-2 right-2 h-12 w-12'>
-            <img src='astrocat-logo.svg' />
+            <a href="https://twitter.com/AstrocatGames_" target="_blank">
+              <img src='astrocat-logo.svg' />
+            </a>
           </div>
         </div>
       </div >
