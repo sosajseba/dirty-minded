@@ -7,3 +7,9 @@
   src: local("VerditerLavanda-Regular"),
     url("./fonts/VerditerLavanda-Regular.ttf") format("truetype");
 }
+
+@layer utilities {
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 5px;
+  }
+}
