@@ -22,7 +22,8 @@ module.exports = {
       height: {
         '404': '404px',
         '33': '33px',
-        '580': '550px'
+        '580': '550px',
+        '452': '452px'
       },
       borderWidth: {
         '1': '1px',
@@ -34,16 +35,20 @@ module.exports = {
       width: {
         '138': '138px',
         '18': '4.5rem',
-        '970': '970px'
+        '970': '970px',
+        '298': '298px'
       }
     },
     colors: {
+      'white': '#FFFFFF',
       'dirty-white': '#F6F5FF',
       'dirty-purple': '#363445',
       'dirty-input': '#9890E3',
       'dirty-btn-p': '#9DFF9B',
       'dirty-ph': '#A9A9A9',
-      'dirty-error': '#FF5353'
+      'dirty-error': '#FF5353',
+      'dirty-stroke': '#3A3A3A',
+      'dirty-disabled': '#DDFFDC'
     },
     fontFamily: {
       'roboto': ['roboto'],

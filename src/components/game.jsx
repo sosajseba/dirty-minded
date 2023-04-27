@@ -12,6 +12,7 @@ import whiteCards from '../data/whitecards.json';
 import bcpositions from '../data/bcpositions.json';
 import wcpositions from '../data/wcpositions.json';
 import { shuffle } from '../utils/utils';
+import Rules from './rules';
 
 const Game = () => {
 
@@ -24,7 +25,7 @@ const Game = () => {
     const minPlayers = window._env_.REACT_APP_MIN_PLAYERS;
     const maxPlayers = window._env_.REACT_APP_MAX_PLAYERS;
     const inviteUrl = window._env_.REACT_APP_INVITE_URL
-
+    const disabled = (minPlayers - value.players.length) >= 0;
     function bestCardIsSelected(index) {
         return bestCardIndex != null ? (index === bestCardIndex ? ' highlight' : '') : ''
     }
@@ -111,25 +112,43 @@ const Game = () => {
     }
 
     return (
-        <div>
-            <div className='wrapper'>
-                <Chat />
-                <Players title="Players:" />
-            </div>
-
-            <div className='wrapper'>
-                {value.gameOver === true
-                    ?
-                    <div className='center winner'>
-                        <p>The winner is {value.winner.name}!</p>
-                    </div>
-                    :
-                    <>
-                        {value.gameStarted === true
-                            ?
-                            (me.id === value.readerId ?
+        <>
+            {value.gameOver === true
+                ?
+                <div className='center winner'>
+                    <p>The winner is {value.winner.name}!</p>
+                </div>
+                :
+                <>
+                    {value.gameStarted === true
+                        ?
+                        (me.id === value.readerId ?
+                            <div className='center reader-box'>
+                                <p>Choose a white card..</p>
+                                <div className='black-card'>
+                                    <div className='card-container'>
+                                        {blackCards[value.currentBlackCard]?.text.replace('{1}', '________')}
+                                    </div>
+                                </div>
+                                {
+                                    value.players.map((player, index) => {
+                                        return (
+                                            player.id !== me.id ?
+                                                <div className={'white-card' + bestCardIsSelected(index)} key={'pickWhiteCard' + index} onClick={() => highlightBestCard(index, player.id)}>
+                                                    <div className='card-container' key={'cardContainer' + index}>
+                                                        {player.picking === true ? player.name + ' is choosing..' : whiteCards[player?.pickedCard]?.text}
+                                                    </div>
+                                                </div>
+                                                : <></>
+                                        )
+                                    })
+                                }
+                                {everyonePicked() === true ? <button onClick={() => winnerGetsOnePoint()}>Ready</button> : <></>}
+                            </div>
+                            :
+                            <>
                                 <div className='center reader-box'>
-                                    <p>Choose a white card..</p>
+                                    <p>{getReaderName()} is choosing a white card..</p>
                                     <div className='black-card'>
                                         <div className='card-container'>
                                             {blackCards[value.currentBlackCard]?.text.replace('{1}', '________')}
@@ -138,8 +157,8 @@ const Game = () => {
                                     {
                                         value.players.map((player, index) => {
                                             return (
-                                                player.id !== me.id ?
-                                                    <div className={'white-card' + bestCardIsSelected(index)} key={'pickWhiteCard' + index} onClick={() => highlightBestCard(index, player.id)}>
+                                                player.id !== value.readerId ?
+                                                    <div className='white-card' key={'pickWhiteCard' + index}>
                                                         <div className='card-container' key={'cardContainer' + index}>
                                                             {player.picking === true ? player.name + ' is choosing..' : whiteCards[player?.pickedCard]?.text}
                                                         </div>
@@ -148,84 +167,70 @@ const Game = () => {
                                             )
                                         })
                                     }
-                                    {everyonePicked() === true ? <button onClick={() => winnerGetsOnePoint()}>Ready</button> : <></>}
                                 </div>
-                                :
-                                <>
-                                    <div className='center reader-box'>
-                                        <p>{getReaderName()} is choosing a white card..</p>
-                                        <div className='black-card'>
-                                            <div className='card-container'>
-                                                {blackCards[value.currentBlackCard]?.text.replace('{1}', '________')}
-                                            </div>
-                                        </div>
+                                <div className='center player-box'>
+                                    <div className='white-cards-container'>
                                         {
-                                            value.players.map((player, index) => {
+                                            me.cards.map((card, index) => {
                                                 return (
-                                                    player.id !== value.readerId ?
-                                                        <div className='white-card' key={'pickWhiteCard' + index}>
-                                                            <div className='card-container' key={'cardContainer' + index}>
-                                                                {player.picking === true ? player.name + ' is choosing..' : whiteCards[player?.pickedCard]?.text}
-                                                            </div>
+                                                    <div className={'white-card' + cardIsSelected(index)} key={'whiteCard' + index} onClick={() => highlightMyCard(index)}>
+                                                        <div className='card-container' key={'cardContainer' + index}>
+                                                            {whiteCards[card].text}
                                                         </div>
-                                                        : <></>
-                                                )
+                                                    </div>)
                                             })
                                         }
+                                        <button onClick={() => pickWhiteCard(selectedCardIndex)}>Ready</button>
                                     </div>
-                                    <div className='center player-box'>
-                                        <div className='white-cards-container'>
-                                            {
-                                                me.cards.map((card, index) => {
-                                                    return (
-                                                        <div className={'white-card' + cardIsSelected(index)} key={'whiteCard' + index} onClick={() => highlightMyCard(index)}>
-                                                            <div className='card-container' key={'cardContainer' + index}>
-                                                                {whiteCards[card].text}
-                                                            </div>
-                                                        </div>)
-                                                })
-                                            }
-                                            <button onClick={() => pickWhiteCard(selectedCardIndex)}>Ready</button>
-                                        </div>
-                                    </div>
-                                </>
-                            )
-                            :
-                            <div className='center reader-box'>
-                                <p>Players joined: {value.players.length + '/' + maxPlayers}</p>
-                                {(minPlayers - value.players.length) <= 0 ?
-                                    <></>
-                                    :
-                                    <p>Waiting for {minPlayers - value.players.length} more players to join </p>}
-                                {getMe().admin ?
-                                    <div>
-                                        {
-                                            (minPlayers - value.players.length) <= 0
-                                                ?
-                                                <button
-                                                    onClick={() => {
-                                                        setupGame()
-                                                    }}>
-                                                    Start
-                                                </button>
-                                                :
-                                                <></>
-                                        }
-
-                                        <button
-                                            onClick={() => navigator.clipboard.writeText(inviteUrl + value.roomId)}>
-                                            Invite
-                                        </button>
-                                    </div>
-                                    :
-                                    <p>Waiting for the host to start the game..</p>
-                                }
+                                </div>
+                            </>
+                        )
+                        :
+                        <>
+                            <p className='pb-5 text-center font-lavanda text-xl text-dirty-purple'>
+                                ¡Completa la frase con tu mejor carta!
+                            </p>
+                            <div className="flex items-center justify-center sm:mx-48">
+                                {/* <Chat /> */}
+                                <Players maxPlayers={maxPlayers} minPlayers={minPlayers} />
+                                <Rules className='h-404 w-6/12 rounded-2xl drop-shadow-xl p-6 bg-dirty-white max-w-custom-2' />
                             </div>
-                        }
-                    </>
-                }
-            </div>
-        </div>
+                            <div className="flex items-center justify-center sm:mx-48">
+                                <div className='w-4/12 p-2 mr-4 md:mr-2 max-w-custom-1'>
+                                    {(minPlayers - value.players.length) <= 0 ?
+                                        <></>
+                                        :
+                                        <p className='text-dirty-white text-center font-roboto text-sm'>Esperando que se unan mas jugadores... </p>}
+                                </div>
+                                <div className='w-6/12 pt-2 max-w-custom-2'>
+                                    {getMe().admin ?
+                                        <div className='flex justify-center space-x-4'>
+                                            <button
+                                                className={`flex items-center justify-center bg-white rounded-10 text-dirty-purple font-extrabold text-center shadow-lg font-roboto h-10 w-1/2`}
+                                                onClick={() => navigator.clipboard.writeText(inviteUrl + value.roomId)}>
+                                                <img className='mr-1' src='link.png' />
+                                                INVITAR
+                                            </button>
+                                            <button
+                                                onClick={() => {
+                                                    setupGame()
+                                                }}
+                                                disabled={disabled}
+                                                className={`flex items-center justify-center ${disabled ? "bg-dirty-disabled" : "bg-dirty-btn-p"} rounded-10 text-dirty-purple font-extrabold text-center shadow-lg font-roboto h-10 w-1/2`}>
+                                                <img className='mr-1' src='play.png' />
+                                                COMENZAR
+                                            </button>
+                                        </div>
+                                        :
+                                        <p className='text-dirty-white text-center font-roboto text-sm'>Esperando que el administrador inicie la partida...</p>
+                                    }
+                                </div>
+                            </div>
+                        </>
+                    }
+                </>
+            }
+        </>
     )
 
 }

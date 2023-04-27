@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
 import Terms from './routes/terms';
 import SocketProvider from './components/socket_context';
 import Privacy from './routes/privacy';
+import NotFound from './routes/not-found';
 //import About from './routes/about';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
@@ -30,6 +31,7 @@ root.render(
               <Route path='/' element={<App />} />
               <Route path='terms' element={<Terms />} />
               <Route path='privacy' element={<Privacy />} />
+              <Route path='*' element={<NotFound />} />
               {/* <Route path='about' element={<About />} /> */}
             </Routes>
           </div>
@@ -60,7 +62,7 @@ root.render(
                 <span className='mr-2 hover:underline'>|</span>
               </li>
               <li>
-                <a className='mr-2 hover:underline' href="mailto:spazekatgames@gmail.com.com">
+                <a className='mr-2 hover:underline' href="mailto:astrocatgamescontact@gmail.com">
                   Contacto
                 </a>
               </li>
