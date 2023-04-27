@@ -13,3 +13,7 @@
     width: 5px;
   }
 }
+
+.bg-gradient {
+  background-image: linear-gradient(to bottom, #B1F4CF, #9890E3);
+}

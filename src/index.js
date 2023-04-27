@@ -14,13 +14,13 @@ const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <SocketProvider>
     <BrowserRouter>
-      <div className='bg-cover w-screen h-screen' style={{ backgroundImage: 'url(site-background.svg)' }}>
+      <div className='bg-gradient min-h-screen'>
         {/* <header className=''>
         </header> */}
         <div>
           {/* Aca deberia ir el ad */}
         </div>
-        <div className='flex flex-col h-screen justify-between'>
+        <div className='flex flex-col min-h-screen justify-between'>
           <div className="pt-20">
             <div className='mx-auto w-80 h-max'>
               <Link to='/'>
@@ -84,7 +84,7 @@ root.render(
               </li>
             </ul>
           </footer>
-          <div className='absolute bottom-2 right-2 h-12 w-12'>
+          <div className='bottom-2 right-2 h-12 w-12 fixed'>
             <a href="https://twitter.com/AstrocatGames_" target="_blank">
               <img src='astrocat-logo.svg' />
             </a>
