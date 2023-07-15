@@ -13,6 +13,7 @@ import bcpositions from '../data/bcpositions.json';
 import wcpositions from '../data/wcpositions.json';
 import { shuffle } from '../utils/utils';
 import Rules from './rules';
+import Slider from 'react-slick';
 
 const Game = () => {
 
@@ -123,67 +124,79 @@ const Game = () => {
                     {value.gameStarted === true
                         ?
                         (me.id === value.readerId ?
-                            <div className='center reader-box'>
-                                <p>Choose a white card..</p>
-                                <div className='black-card'>
-                                    <div className='card-container'>
-                                        {blackCards[value.currentBlackCard]?.text.replace('{1}', '________')}
-                                    </div>
-                                </div>
-                                {
-                                    value.players.map((player, index) => {
-                                        return (
-                                            player.id !== me.id ?
-                                                <div className={'white-card' + bestCardIsSelected(index)} key={'pickWhiteCard' + index} onClick={() => highlightBestCard(index, player.id)}>
-                                                    <div className='card-container' key={'cardContainer' + index}>
-                                                        {player.picking === true ? player.name + ' is choosing..' : whiteCards[player?.pickedCard]?.text}
-                                                    </div>
-                                                </div>
-                                                : <></>
-                                        )
-                                    })
-                                }
-                                {everyonePicked() === true ? <button onClick={() => winnerGetsOnePoint()}>Ready</button> : <></>}
+                            // <div className='center reader-box'>
+                            //     <p>Choose a white card..</p>
+                            //     <div className='black-card'>
+                            //         <div className='card-container'>
+                            //             {blackCards[value.currentBlackCard]?.text.replace('{1}', '________')}
+                            //         </div>
+                            //     </div>
+                            //     {
+                            //         value.players.map((player, index) => {
+                            //             return (
+                            //                 player.id !== me.id ?
+                            //                     <div className={'white-card' + bestCardIsSelected(index)} key={'pickWhiteCard' + index} onClick={() => highlightBestCard(index, player.id)}>
+                            //                         <div className='card-container' key={'cardContainer' + index}>
+                            //                             {player.picking === true ? player.name + ' is choosing..' : whiteCards[player?.pickedCard]?.text}
+                            //                         </div>
+                            //                     </div>
+                            //                     : <></>
+                            //             )
+                            //         })
+                            //     }
+                            //     {everyonePicked() === true ? <button onClick={() => winnerGetsOnePoint()}>Ready</button> : <></>}
+                            // </div>
+                            <div className="max-w-6xl">
+                                <LeftRect />
+                                <RightRect />
+                                <CardSlider />
+                                <TopCards />
                             </div>
                             :
-                            <>
-                                <div className='center reader-box'>
-                                    <p>{getReaderName()} is choosing a white card..</p>
-                                    <div className='black-card'>
-                                        <div className='card-container'>
-                                            {blackCards[value.currentBlackCard]?.text.replace('{1}', '________')}
-                                        </div>
-                                    </div>
-                                    {
-                                        value.players.map((player, index) => {
-                                            return (
-                                                player.id !== value.readerId ?
-                                                    <div className='white-card' key={'pickWhiteCard' + index}>
-                                                        <div className='card-container' key={'cardContainer' + index}>
-                                                            {player.picking === true ? player.name + ' is choosing..' : whiteCards[player?.pickedCard]?.text}
-                                                        </div>
-                                                    </div>
-                                                    : <></>
-                                            )
-                                        })
-                                    }
-                                </div>
-                                <div className='center player-box'>
-                                    <div className='white-cards-container'>
-                                        {
-                                            me.cards.map((card, index) => {
-                                                return (
-                                                    <div className={'white-card' + cardIsSelected(index)} key={'whiteCard' + index} onClick={() => highlightMyCard(index)}>
-                                                        <div className='card-container' key={'cardContainer' + index}>
-                                                            {whiteCards[card].text}
-                                                        </div>
-                                                    </div>)
-                                            })
-                                        }
-                                        <button onClick={() => pickWhiteCard(selectedCardIndex)}>Ready</button>
-                                    </div>
-                                </div>
-                            </>
+                            // <>
+                            //     <div className='center reader-box'>
+                            //         <p>{getReaderName()} is choosing a white card..</p>
+                            //         <div className='black-card'>
+                            //             <div className='card-container'>
+                            //                 {blackCards[value.currentBlackCard]?.text.replace('{1}', '________')}
+                            //             </div>
+                            //         </div>
+                            //         {
+                            //             value.players.map((player, index) => {
+                            //                 return (
+                            //                     player.id !== value.readerId ?
+                            //                         <div className='white-card' key={'pickWhiteCard' + index}>
+                            //                             <div className='card-container' key={'cardContainer' + index}>
+                            //                                 {player.picking === true ? player.name + ' is choosing..' : whiteCards[player?.pickedCard]?.text}
+                            //                             </div>
+                            //                         </div>
+                            //                         : <></>
+                            //                 )
+                            //             })
+                            //         }
+                            //     </div>
+                            //     <div className='center player-box'>
+                            //         <div className='white-cards-container'>
+                            //             {
+                            //                 me.cards.map((card, index) => {
+                            //                     return (
+                            //                         <div className={'white-card' + cardIsSelected(index)} key={'whiteCard' + index} onClick={() => highlightMyCard(index)}>
+                            //                             <div className='card-container' key={'cardContainer' + index}>
+                            //                                 {whiteCards[card].text}
+                            //                             </div>
+                            //                         </div>)
+                            //                 })
+                            //             }
+                            //             <button onClick={() => pickWhiteCard(selectedCardIndex)}>Ready</button>
+                            //         </div>
+                            //     </div>
+                            // </>
+                            <div className="max-w-6xl">
+                                <LeftRect />
+                                <RightRect />
+                                <CardSlider />
+                                <TopCards />
+                            </div>
                         )
                         :
                         <>
@@ -234,5 +247,56 @@ const Game = () => {
     )
 
 }
+
+const LeftRect = () => {
+    return (
+        <div className="w-2/6 h-3/4 bg-dirty-white absolute left-0 top-0">
+        </div>
+    );
+};
+
+const RightRect = () => {
+    return (
+        <div className="w-2/6 h-3/4 bg-dirty-white absolute right-0 top-0"></div>
+    );
+};
+
+const CardSlider = () => {
+    const settings = {
+        dots: true,
+        infinite: true,
+        speed: 500,
+        slidesToShow: 3,
+        slidesToScroll: 3
+    };
+
+    return (
+        <div className="w-full h-1/2">
+            <Slider {...settings}>
+                <div>
+                    <div className="w-4/5 h-4/6 bg-white m-auto"></div>
+                </div>
+                <div>
+                    <div className="w-4/5 h-4/6 bg-white m-auto"></div>
+                </div>
+                <div>
+                    <div className="w-4/5 h-4/6 bg-white m-auto"></div>
+                </div>
+                <div>
+                    <div className="w-4/5 h-4/6 bg-white m-auto"></div>
+                </div>
+            </Slider>
+        </div>
+    );
+};
+
+const TopCards = () => {
+    return (
+        <div className="w-full h-1/4 flex">
+            <div className="w-1/2 h-full bg-gray-500"></div>
+            <div className="w-1/2 h-full bg-gray-700"></div>
+        </div>
+    );
+};
 
 export default Game;

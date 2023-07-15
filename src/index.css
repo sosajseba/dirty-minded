@@ -15,5 +15,5 @@
 }
 
 .bg-gradient {
-  background-image: linear-gradient(to bottom, #B1F4CF, #9890E3);
+  background-image: linear-gradient(to bottom, #B1F4CF 25%, #9890E3 100%);
 }
