@@ -228,7 +228,7 @@ const Game = () => {
           kind === "white" ? "text-[#000000]" : "text-white"
         } `}
       >
-        ¿Cuál es el gusto culposo de Batman?
+        {text}
       </span>
     </div>
   );
@@ -328,8 +328,8 @@ const Game = () => {
               <div className="w-[100%] flex flex-col ">
                 <div className="self-center">
                   <div className="flex flex-row gap-[36.75px] mb-[80px]">
-                    <BigCard text={value.currentBlackCard} />
-                    <BigCard kind={"white"} />
+                    <BigCard text={blackCards[value.currentBlackCard]?.text.replace('{1}','________')} />
+                    <BigCard kind={"white"} text={selectedCardIndex ? whiteCards[selectedCardIndex] : 'Eligiendo...'} />
                   </div>
                 </div>
 
