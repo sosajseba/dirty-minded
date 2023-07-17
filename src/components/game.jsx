@@ -233,6 +233,58 @@ const Game = () => {
     </div>
   );
 
+  const Tabs = ({ children }) => (
+    <div>
+      <div></div>
+    </div>
+  );
+
+  const PlayersChat = () => (
+    <div className="w-[285px] h-[593px] bg-dirty-white rounded-[19px] flex flex-col py-[16px] px-[13px]">
+      <div className="w-[100%] h-[100%] gap-[10px] flex flex-col">
+        <BubbleMessage
+          name={"Juan"}
+          nameColor={"#FFB8EB"}
+          message={"hola como estas"}
+          isPlayer={true}
+        />
+        <BubbleMessage
+          name={"Pedro"}
+          nameColor={"#FF8585"}
+          message={
+            "esto es una prueba de la longituz de las bubbles chats alonso es el puto amo"
+          }
+        />
+      </div>
+      <div className="w-fit h-fit self-center">
+        <input
+          placeholder="Escribe un mensaje"
+          className="w-[253px] h-[36px] rounded-[9px] border-[2px] border-dirty-input pl-[20px] font-roboto font-bold"
+        />
+      </div>
+    </div>
+  );
+
+  const BubbleMessage = ({ name, nameColor, message, isPlayer }) => (
+    <div
+      className={` ${
+        isPlayer ? "bg-[#D0FFCF]" : "bg-[#E5E2FF]"
+      }  min-w-[120px] min-h-[33px] w-fit h-fit rounded-[9px] py-[8px] px-[20px]`}
+    >
+      <div>
+        <span
+          className={`text-[${nameColor}] text-[14px] font-roboto font-bold`}
+        >
+          {name}:
+        </span>
+        <span className="font-roboto text-[14px] font-bold text-dirty-purple">
+          {" "}
+          {message}
+        </span>
+      </div>
+    </div>
+  );
+
   return (
     <>
       {value.gameOver === true ? (
@@ -292,34 +344,7 @@ const Game = () => {
                 </div>
               </div>
               <div>
-                <PlayerCardsContainer
-                  disabledButton={value.readerId !== me.id && !everyonePicked()}
-                  winnerGetsOnePoint={() => winnerGetsOnePoint()}
-                >
-                  {value.players
-                    .filter(
-                      (player) =>
-                        player.id !== me.id && player.id !== value.readerId
-                    )
-                    .map((player, index) => (
-                      <div
-                        key={"pickWhiteCard" + index}
-                        onClick={() => highlightBestCard(index, player.id)}
-                      >
-                        <PlayerWhiteCard
-                          position={index + 1}
-                          text={
-                            player.picking === true
-                              ? "Eligiendo..."
-                              : whiteCards[player?.pickedCard]?.text
-                          }
-                        />
-                      </div>
-                    ))}
-                  {Array.from(Array(totalPlayers).keys()).map((emptyPlayer) => (
-                    <PlayerEmptyCard />
-                  ))}
-                </PlayerCardsContainer>
+                <PlayersChat />
               </div>
             </div>
           ) : (
