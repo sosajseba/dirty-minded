@@ -1,4 +1,4 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useRef } from "react";
 import SocketContext from "./socket_context/context";
 import Players from "./players";
 import Chat from "./chat";
@@ -18,7 +18,8 @@ import bcpositions from "../data/bcpositions.json";
 import wcpositions from "../data/wcpositions.json";
 import { shuffle } from "../utils/utils";
 import Rules from "./rules";
-import Slider from "react-slick";
+import AliceCarousel from "react-alice-carousel";
+import "react-alice-carousel/lib/alice-carousel.css";
 
 const Game = () => {
   const { me, value, setMe } = useContext(SocketContext);
@@ -26,7 +27,7 @@ const Game = () => {
   const [bestCardIndex, setBestCardIndex] = useState();
   const [roundWinnerId, setRoundWinnerId] = useState();
   const [selectedCardIndex, setSelectedCardIndex] = useState();
-
+  const carouselRef = useRef(null);
   const minPlayers = window._env_.REACT_APP_MIN_PLAYERS;
   const maxPlayers = window._env_.REACT_APP_MAX_PLAYERS;
   const totalPlayers = maxPlayers - value.players.length;
@@ -136,8 +137,6 @@ const Game = () => {
     return highlight;
   }
 
-  console.log(value.players);
-
   const Lobby = () => (
     <>
       <p className="pb-5 text-center font-lavanda text-xl text-dirty-purple">
@@ -195,18 +194,50 @@ const Game = () => {
 
   //CARTAS CONTAINER
   const Cartas = () => (
-    <div className="flex flex-row gap-[6px] w-[100%]">
-      {/*       {me.cards.map((card, index) => (
-        <div key={"whiteCard" + index} onClick={() => highlightMyCard(index)}>
-          <Card text={whiteCards[card].text} />
-        </div>
-      ))} */}
-      <Card text={"Lorem Impsum"} />
-      <Card text={"Lorem Impsum"} />
-      <Card text={"Lorem Impsum"} />
-      <Card text={"Lorem Impsum"} />
-      <Card text={"Lorem Impsum"} />
-      {/* <button onClick={() => pickWhiteCard(selectedCardIndex)}>Ready</button> */}
+    <div className="flex flex-row">
+      <button
+        className="self-center"
+        onClick={() => carouselRef?.current?.slidePrev()}
+      >
+        <img
+          className="w-[29px] h-[29px]"
+          src="left-arrow-1.svg"
+          alt="left-arrow"
+        />
+      </button>
+      <div className="w-[525px]">
+        <AliceCarousel
+          dotsDisabled={true}
+          onSlideChange={(e) => console.log(e)}
+          disableDotsControls
+          disableSlideInfo={true}
+          disableButtonsControls
+          ref={(el) => (carouselRef.current = el)}
+          responsive={{
+            0: {
+              items: 5,
+              itemsFit: "contain",
+            },
+          }}
+          items={me.cards.map((card, index) => (
+            <div key={index} onClick={() => highlightMyCard(index)}>
+              <Card text={whiteCards[card].text} />
+            </div>
+          ))}
+        />
+
+        {/* <button onClick={() => pickWhiteCard(selectedCardIndex)}>Ready</button> */}
+      </div>
+      <button
+        className="self-center"
+        onClick={() => carouselRef?.current?.slideNext()}
+      >
+        <img
+          className="w-[29px] h-[29px]"
+          src="right-arrow-1.svg"
+          alt="left-arrow"
+        />
+      </button>
     </div>
   );
 
@@ -328,8 +359,20 @@ const Game = () => {
               <div className="w-[100%] flex flex-col ">
                 <div className="self-center">
                   <div className="flex flex-row gap-[36.75px] mb-[80px]">
-                    <BigCard text={blackCards[value.currentBlackCard]?.text.replace('{1}','________')} />
-                    <BigCard kind={"white"} text={selectedCardIndex ? whiteCards[selectedCardIndex] : 'Eligiendo...'} />
+                    <BigCard
+                      text={blackCards[value.currentBlackCard]?.text.replace(
+                        "{1}",
+                        "________"
+                      )}
+                    />
+                    <BigCard
+                      kind={"white"}
+                      text={
+                        selectedCardIndex
+                          ? whiteCards[selectedCardIndex]
+                          : "Eligiendo..."
+                      }
+                    />
                   </div>
                 </div>
 
@@ -339,8 +382,15 @@ const Game = () => {
                   </span>
                 </div>
 
-                <div className="self-center">
+                <div className="self-center flex flex-col gap-[21px]">
                   <Cartas />
+                  <div className="self-center">
+                    <button className="w-[233px] h-[46px] py-[11px] px-[50px] rounded-[9px] bg-dirty-btn-p shadow-md">
+                      <span className="text-dirty-purple font-roboto text-[20px] font-bold">
+                        SELECCIONAR
+                      </span>
+                    </button>
+                  </div>
                 </div>
               </div>
               <div>
@@ -402,7 +452,7 @@ const PlayerCardsContainer = ({
 }) => (
   <div className="w-[288px]  h-[638px] rounded-[17px]  bg-dirty-white pr-2 pt-[22.34px] flex flex-col">
     <div className="h-[100%] overflow-auto scrollbar-thumb-dirty-input scrollbar-thin scrollbar-track-rounded-10 scrollbar-thumb-rounded-10 relative">
-      <div className="flex flex-col items-center  gap-[11.3px]  ">
+      <div className="flex flex-col items-center  gap-[11.3px] ">
         {children}
       </div>
     </div>
