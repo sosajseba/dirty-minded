@@ -33,10 +33,11 @@ const Game = () => {
   const totalPlayers = maxPlayers - value.players.length;
   const inviteUrl = window._env_.REACT_APP_INVITE_URL;
   const disabled = minPlayers - value.players.length >= 0;
+
   function bestCardIsSelected(index) {
     return bestCardIndex != null
       ? index === bestCardIndex
-        ? " highlight"
+        ? " border-1"
         : ""
       : "";
   }
@@ -121,6 +122,7 @@ const Game = () => {
   }
 
   function highlightMyCard(cardIndex) {
+    console.log(cardIndex)
     if (getMe().picking === true) {
       // double check
       setSelectedCardIndex(cardIndex);
@@ -131,7 +133,7 @@ const Game = () => {
     var highlight =
       selectedCardIndex != null
         ? index === selectedCardIndex
-          ? " highlight"
+          ? " border-1"
           : ""
         : "";
     return highlight;
@@ -174,9 +176,8 @@ const Game = () => {
                   setupGame();
                 }}
                 disabled={disabled}
-                className={`flex items-center justify-center ${
-                  disabled ? "bg-dirty-disabled" : "bg-dirty-btn-p"
-                } rounded-10 text-dirty-purple font-extrabold text-center shadow-lg font-roboto h-10 w-1/2`}
+                className={`flex items-center justify-center ${disabled ? "bg-dirty-disabled" : "bg-dirty-btn-p"
+                  } rounded-10 text-dirty-purple font-extrabold text-center shadow-lg font-roboto h-10 w-1/2`}
               >
                 <img className="mr-1" src="play.png" />
                 COMENZAR
@@ -221,7 +222,7 @@ const Game = () => {
           }}
           items={me.cards.map((card, index) => (
             <div key={index} onClick={() => highlightMyCard(index)}>
-              <Card text={whiteCards[card].text} />
+              <Card text={whiteCards[card].text} index={index} />
             </div>
           ))}
         />
@@ -242,22 +243,20 @@ const Game = () => {
   );
 
   //CARD PARA VOTAR
-  const Card = ({ text }) => (
-    <div className="w-[99px] h-[141px] py-[16px] px-[14px] rounded-[7.247px] bg-white shadow-sm">
+  const Card = ({ text, index }) => (
+    <div className={'w-[99px] h-[141px] py-[16px] px-[14px] rounded-[7.247px] bg-white shadow-sm' + cardIsSelected(index)}>
       <span className=" font-roboto text-[11px] font-bold ">{text}</span>
     </div>
   );
 
   const BigCard = ({ kind, text }) => (
     <div
-      className={`px-[27px] py-[31px] w-[213.253px] h-[300.943px] shadow-dirty-shadow-card ${
-        kind === "white" ? "bg-white" : "bg-[#000000]"
-      } rounded-[16px]`}
+      className={`px-[27px] py-[31px] w-[213.253px] h-[300.943px] shadow-dirty-shadow-card ${kind === "white" ? "bg-white" : "bg-[#000000]"
+        } rounded-[16px]`}
     >
       <span
-        className={`font-black text-[21.5px] font-roboto ${
-          kind === "white" ? "text-[#000000]" : "text-white"
-        } `}
+        className={`font-black text-[21.5px] font-roboto ${kind === "white" ? "text-[#000000]" : "text-white"
+          } `}
       >
         {text}
       </span>
@@ -273,19 +272,27 @@ const Game = () => {
   const PlayersChat = () => (
     <div className="w-[285px] h-[593px] bg-dirty-white rounded-[19px] flex flex-col py-[16px] px-[13px]">
       <div className="w-[100%] h-[100%] gap-[10px] flex flex-col">
+        {/* Usando chat para mostrar turno y puntaje */}
         <BubbleMessage
-          name={"Juan"}
+          name={"Dirty Minded"}
           nameColor={"#FFB8EB"}
-          message={"hola como estas"}
+          message={value.readerId === getMe().id ? "Es su turno" :"Es el turno de " + getReaderName()}
           isPlayer={true}
         />
-        <BubbleMessage
-          name={"Pedro"}
-          nameColor={"#FF8585"}
-          message={
-            "esto es una prueba de la longituz de las bubbles chats alonso es el puto amo"
-          }
-        />
+        {
+          value.players.map((player, index) => {
+            return (
+              <BubbleMessage
+                name={player.id === getMe().id ? "Usted": player.name}
+                nameColor={"#FF8585"}
+                message={
+                  player.score
+                }
+              />
+            )
+          })
+        }
+        {/* Usando chat para mostrar turno y puntaje */}
       </div>
       <div className="w-fit h-fit self-center">
         <input
@@ -298,9 +305,8 @@ const Game = () => {
 
   const BubbleMessage = ({ name, nameColor, message, isPlayer }) => (
     <div
-      className={` ${
-        isPlayer ? "bg-[#D0FFCF]" : "bg-[#E5E2FF]"
-      }  min-w-[120px] min-h-[33px] w-fit h-fit rounded-[9px] py-[8px] px-[20px]`}
+      className={` ${isPlayer ? "bg-[#D0FFCF]" : "bg-[#E5E2FF]"
+        }  min-w-[120px] min-h-[33px] w-fit h-fit rounded-[9px] py-[8px] px-[20px]`}
     >
       <div>
         <span
@@ -311,6 +317,23 @@ const Game = () => {
         <span className="font-roboto text-[14px] font-bold text-dirty-purple">
           {" "}
           {message}
+        </span>
+      </div>
+    </div>
+  );
+
+  const PlayerWhiteCard = ({ position, text, playerId }) => (
+    <div className={'w-[246px] h-[64px] rounded-[7px] bg-white shadow-dirty-shadow-card flex flex-row  items-center gap-[14px] pl-[9px]' + bestCardIsSelected(position - 1)}
+      onClick={() => highlightBestCard(position - 1, playerId)}>
+      <div className=" w-[27px] h-[27px] bg-[#48C3AD] rounded-full flex justify-center align-middle ">
+        <span className="self-center text-sm font-bold text-dirty-purple font-roboto ">
+          {position}
+        </span>
+      </div>
+
+      <div>
+        <span className="text-sm font-bold text-dirty-purple font-roboto">
+          {text}
         </span>
       </div>
     </div>
@@ -348,6 +371,7 @@ const Game = () => {
                               ? "Eligiendo..."
                               : whiteCards[player?.pickedCard]?.text
                           }
+                          playerId={player.id}
                         />
                       </div>
                     ))}
@@ -368,9 +392,10 @@ const Game = () => {
                     <BigCard
                       kind={"white"}
                       text={
-                        selectedCardIndex
-                          ? whiteCards[selectedCardIndex]
-                          : "Eligiendo..."
+                        //selectedCardIndex
+                        //? whiteCards[selectedCardIndex]
+                        //: 
+                        "Eligiendo..."
                       }
                     />
                   </div>
@@ -385,7 +410,7 @@ const Game = () => {
                 <div className="self-center flex flex-col gap-[21px]">
                   <Cartas />
                   <div className="self-center">
-                    <button className="w-[233px] h-[46px] py-[11px] px-[50px] rounded-[9px] bg-dirty-btn-p shadow-md">
+                    <button className="w-[233px] h-[46px] py-[11px] px-[50px] rounded-[9px] bg-dirty-btn-p shadow-md" onClick={() => pickWhiteCard(selectedCardIndex)}>
                       <span className="text-dirty-purple font-roboto text-[20px] font-bold">
                         SELECCIONAR
                       </span>
@@ -429,21 +454,7 @@ const PlayerEmptyCard = () => (
   <div className="w-[246px] h-[64px] rounded-[7px] bg-dirty-input  bg-opacity-30 border-dirty-input border-1" />
 );
 
-const PlayerWhiteCard = ({ position, text }) => (
-  <div className="w-[246px] h-[64px] rounded-[7px] bg-white shadow-dirty-shadow-card flex flex-row  items-center gap-[14px] pl-[9px]">
-    <div className=" w-[27px] h-[27px] bg-[#48C3AD] rounded-full flex justify-center align-middle ">
-      <span className="self-center text-sm font-bold text-dirty-purple font-roboto ">
-        {position}
-      </span>
-    </div>
 
-    <div>
-      <span className="text-sm font-bold text-dirty-purple font-roboto">
-        {text}
-      </span>
-    </div>
-  </div>
-);
 
 const PlayerCardsContainer = ({
   children,
@@ -458,9 +469,8 @@ const PlayerCardsContainer = ({
     </div>
     <div className="w-[100%] rounded-[17px] py-[16px] px-[21px] bg-dirty-white">
       <div
-        className={`w-[100%] h-[40px] rounded-[8px] text-center flex flex-col justify-center shadow-dirty-shadow-card cursor-pointer ${
-          disabledButton ? "bg-dirty-disabled" : "bg-dirty-btn-p"
-        }`}
+        className={`w-[100%] h-[40px] rounded-[8px] text-center flex flex-col justify-center shadow-dirty-shadow-card cursor-pointer ${disabledButton ? "bg-dirty-disabled" : "bg-dirty-btn-p"
+          }`}
         onClick={() => !disabledButton && winnerGetsOnePoint()}
       >
         <span className="text-dirty-purple font-bold text-[17.273px] font-roboto ">
