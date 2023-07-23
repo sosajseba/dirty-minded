@@ -122,7 +122,6 @@ const Game = () => {
   }
 
   function highlightMyCard(cardIndex) {
-    console.log(cardIndex)
     if (getMe().picking === true) {
       // double check
       setSelectedCardIndex(cardIndex);
@@ -155,7 +154,7 @@ const Game = () => {
             <></>
           ) : (
             <p className="text-dirty-white text-center font-roboto text-sm">
-              Esperando que se unan mas jugadores...{" "}
+              Esperando que se unan más jugadores...{" "}
             </p>
           )}
         </div>
@@ -226,8 +225,6 @@ const Game = () => {
             </div>
           ))}
         />
-
-        {/* <button onClick={() => pickWhiteCard(selectedCardIndex)}>Ready</button> */}
       </div>
       <button
         className="self-center"
@@ -351,7 +348,7 @@ const Game = () => {
             <div className="flex flex-row justify-between w-[100%] h-[100%]">
               <div>
                 <PlayerCardsContainer
-                  disabledButton={value.readerId !== me.id && !everyonePicked()}
+                  disabledButton={value.readerId !== me.id || !everyonePicked()}
                   winnerGetsOnePoint={() => winnerGetsOnePoint()}
                 >
                   {value.players
@@ -431,30 +428,9 @@ const Game = () => {
   );
 };
 
-{
-  /* <div className="w-[246px] h-[64px] rounded-[7px] bg-white shadow-dirty-shadow-card flex flex-row  items-center gap-[14px] pl-[9px]">
-
-  <div className=" w-[27px] h-[27px] bg-[#48C3AD] rounded-full flex justify-center align-middle ">
-    <span className="self-center text-sm font-bold text-dirty-purple font-roboto ">
-      1
-    </span>
-  </div>
-
-  <div>
-    <span className="text-sm font-bold text-dirty-purple font-roboto">
-      Moco, mucho moco
-    </span>
-  </div>
-</div>;
-
-<div className="w-[246px] h-[64px] rounded-[7px] bg-dirty-input  bg-opacity-30 border-dirty-input border-1" />; */
-}
-
 const PlayerEmptyCard = () => (
   <div className="w-[246px] h-[64px] rounded-[7px] bg-dirty-input  bg-opacity-30 border-dirty-input border-1" />
 );
-
-
 
 const PlayerCardsContainer = ({
   children,
@@ -468,68 +444,18 @@ const PlayerCardsContainer = ({
       </div>
     </div>
     <div className="w-[100%] rounded-[17px] py-[16px] px-[21px] bg-dirty-white">
-      <div
+      <button
         className={`w-[100%] h-[40px] rounded-[8px] text-center flex flex-col justify-center shadow-dirty-shadow-card cursor-pointer ${disabledButton ? "bg-dirty-disabled" : "bg-dirty-btn-p"
           }`}
-        onClick={() => !disabledButton && winnerGetsOnePoint()}
+        disabled={disabledButton}
+        onClick={() => winnerGetsOnePoint()}
       >
         <span className="text-dirty-purple font-bold text-[17.273px] font-roboto ">
           VOTAR
         </span>
-      </div>
+      </button>
     </div>
   </div>
 );
-
-/* 
-const LeftRect = () => {
-  return (
-    <div className="w-2/6 h-3/4 bg-dirty-white absolute left-0 top-0"></div>
-  );
-};
-
-const RightRect = () => {
-  return (
-    <div className="w-2/6 h-3/4 bg-dirty-white absolute right-0 top-0"></div>
-  );
-};
-
-const CardSlider = () => {
-  const settings = {
-    dots: true,
-    infinite: true,
-    speed: 500,
-    slidesToShow: 3,
-    slidesToScroll: 3,
-  };
-
-  return (
-    <div className="w-full h-1/2">
-      <Slider {...settings}>
-        <div>
-          <div className="w-4/5 h-4/6 bg-white m-auto"></div>
-        </div>
-        <div>
-          <div className="w-4/5 h-4/6 bg-white m-auto"></div>
-        </div>
-        <div>
-          <div className="w-4/5 h-4/6 bg-white m-auto"></div>
-        </div>
-        <div>
-          <div className="w-4/5 h-4/6 bg-white m-auto"></div>
-        </div>
-      </Slider>
-    </div>
-  );
-};
-
-const TopCards = () => {
-  return (
-    <div className="w-full h-1/4 flex">
-      <div className="w-1/2 h-full bg-gray-500"></div>
-      <div className="w-1/2 h-full bg-gray-700"></div>
-    </div>
-  );
-}; */
 
 export default Game;
