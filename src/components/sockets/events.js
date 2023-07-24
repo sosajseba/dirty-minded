@@ -68,16 +68,16 @@ export const socketEvents = ({ setValue, setJoined, setMe }) => {
         });
     });
 
-    socket.on('receive-current-black-card', (index) => {
-        //console.log('receive-current-black-card', roughSizeOfObject(index))
-        //console.log('receive-current-black-card', index)
+    socket.on('receive-picking-white-card', (index) => {
+        //console.log('receive-picking-white-card', roughSizeOfObject(index))
+        //console.log('receive-picking-white-card', index)
         setValue(state => {
-            state.currentBlackCard = index;
+            state.readerWhiteCard = index;
             return { ...state }
         });
     });
 
-    socket.on('receive-next-turn', (readerId) => {
+    socket.on('receive-next-turn', (readerId, index) => {
         //console.log('receive-next-turn', roughSizeOfObject(readerId))
         //console.log('receive-next-turn', readerId)
         setValue(state => {
@@ -89,6 +89,7 @@ export const socketEvents = ({ setValue, setJoined, setMe }) => {
                     player.picking = true;
                 }
             });
+            state.currentBlackCard = index;
             state.readerId = readerId
             state.players = playersCopy
             return { ...state }
@@ -128,6 +129,7 @@ export const socketEvents = ({ setValue, setJoined, setMe }) => {
                 state.winner = winner
                 state.gameOver = true;
             }
+            state.readerWhiteCard = null;
             state.round += 1;
             state.players = playersCopy;
             return { ...state }

@@ -11,6 +11,7 @@ const SocketProvider = (props) => {
         roomIsFull: false,
         gameStarted: false,
         currentBlackCard: 0,
+        readerWhiteCard: null,
         round: 0
     });
 

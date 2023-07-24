@@ -10,7 +10,7 @@ import {
   emitCardsReplacement,
   emitNextTurn,
   emitInitialCardsOrder,
-  emitCurrentBlackCard,
+  emitPickingWhiteCard,
 } from "./sockets/emit";
 import blackCards from "../data/blackcards.json";
 import whiteCards from "../data/whitecards.json";
@@ -27,6 +27,7 @@ const Game = () => {
   const [bestCardIndex, setBestCardIndex] = useState();
   const [roundWinnerId, setRoundWinnerId] = useState();
   const [selectedCardIndex, setSelectedCardIndex] = useState();
+  const [bigCardIndex, setBigCardIndex] = useState();
   const carouselRef = useRef(null);
   const minPlayers = window._env_.REACT_APP_MIN_PLAYERS;
   const maxPlayers = window._env_.REACT_APP_MAX_PLAYERS;
@@ -42,8 +43,9 @@ const Game = () => {
       : "";
   }
 
-  function highlightBestCard(cardIndex, winnerId) {
+  function highlightBestCard(cardIndex, winnerId, pickedCard) {
     if (everyonePicked() === true) {
+      emitPickingWhiteCard(pickedCard);
       setRoundWinnerId(winnerId);
       setBestCardIndex(cardIndex);
     }
@@ -118,13 +120,13 @@ const Game = () => {
       );
       emitInitialCardsOrder({ whiteCards: wcOrder, blackCards: bcOrder });
     }
-    emitCurrentBlackCard();
   }
 
-  function highlightMyCard(cardIndex) {
-    if (getMe().picking === true) {
+  function highlightMyCard(card, index) {
+    if (imPicking()) {
       // double check
-      setSelectedCardIndex(cardIndex);
+      setSelectedCardIndex(index);
+      setBigCardIndex(card);
     }
   }
 
@@ -136,6 +138,22 @@ const Game = () => {
           : ""
         : "";
     return highlight;
+  }
+
+  function isMyTurn() {
+    return getMe().id === value.readerId;
+  }
+
+  function imPicking() {
+    return getMe().picking === true;
+  }
+
+  function getCurrentWhiteCard() {
+    return selectedCardIndex !== null && bigCardIndex
+      ? whiteCards[bigCardIndex].text
+      :
+      value.readerWhiteCard !== null ? whiteCards[value.readerWhiteCard].text :
+        "Eligiendo...";
   }
 
   const Lobby = () => (
@@ -220,7 +238,7 @@ const Game = () => {
             },
           }}
           items={me.cards.map((card, index) => (
-            <div key={index} onClick={() => highlightMyCard(index)}>
+            <div key={index} onClick={() => highlightMyCard(card, index)}>
               <Card text={whiteCards[card].text} index={index} />
             </div>
           ))}
@@ -241,7 +259,7 @@ const Game = () => {
 
   //CARD PARA VOTAR
   const Card = ({ text, index }) => (
-    <div className={'w-[99px] h-[141px] py-[16px] px-[14px] rounded-[7.247px] bg-white shadow-sm' + cardIsSelected(index)}>
+    <div className={'w-[99px] h-[141px] py-[16px] px-[14px] rounded-[7.247px] bg-white shadow-sm cursor-pointer' + cardIsSelected(index)}>
       <span className=" font-roboto text-[11px] font-bold ">{text}</span>
     </div>
   );
@@ -273,14 +291,14 @@ const Game = () => {
         <BubbleMessage
           name={"Dirty Minded"}
           nameColor={"#FFB8EB"}
-          message={value.readerId === getMe().id ? "Es su turno" :"Es el turno de " + getReaderName()}
+          message={isMyTurn() ? "Es su turno" : "Es el turno de " + getReaderName()}
           isPlayer={true}
         />
         {
           value.players.map((player, index) => {
             return (
               <BubbleMessage
-                name={player.id === getMe().id ? "Usted": player.name}
+                name={player.id === getMe().id ? "Usted" : player.name}
                 nameColor={"#FF8585"}
                 message={
                   player.score
@@ -320,7 +338,7 @@ const Game = () => {
   );
 
   const PlayerWhiteCard = ({ position, text, playerId }) => (
-    <div className={'w-[246px] h-[64px] rounded-[7px] bg-white shadow-dirty-shadow-card flex flex-row  items-center gap-[14px] pl-[9px]' + bestCardIsSelected(position - 1)}
+    <div className={'w-[246px] h-[64px] rounded-[7px] bg-white shadow-dirty-shadow-card flex flex-row  items-center gap-[14px] pl-[9px] cursor-pointer' + bestCardIsSelected(position - 1)}
       onClick={() => highlightBestCard(position - 1, playerId)}>
       <div className=" w-[27px] h-[27px] bg-[#48C3AD] rounded-full flex justify-center align-middle ">
         <span className="self-center text-sm font-bold text-dirty-purple font-roboto ">
@@ -359,7 +377,7 @@ const Game = () => {
                     .map((player, index) => (
                       <div
                         key={"pickWhiteCard" + index}
-                        onClick={() => highlightBestCard(index, player.id)}
+                        onClick={() => highlightBestCard(index, player.id, player?.pickedCard)}
                       >
                         <PlayerWhiteCard
                           position={index + 1}
@@ -388,12 +406,7 @@ const Game = () => {
                     />
                     <BigCard
                       kind={"white"}
-                      text={
-                        //selectedCardIndex
-                        //? whiteCards[selectedCardIndex]
-                        //: 
-                        "Eligiendo..."
-                      }
+                      text={getCurrentWhiteCard()}
                     />
                   </div>
                 </div>
@@ -407,7 +420,10 @@ const Game = () => {
                 <div className="self-center flex flex-col gap-[21px]">
                   <Cartas />
                   <div className="self-center">
-                    <button className="w-[233px] h-[46px] py-[11px] px-[50px] rounded-[9px] bg-dirty-btn-p shadow-md" onClick={() => pickWhiteCard(selectedCardIndex)}>
+                    <button className={`w-[233px] h-[46px] py-[11px] px-[50px] rounded-[9px] bg-dirty-btn-p shadow-md ${isMyTurn() || !imPicking() ? "bg-dirty-disabled" : "bg-dirty-btn-p"}`}
+                      onClick={() => pickWhiteCard(selectedCardIndex)}
+                      disabled={isMyTurn() || !imPicking()}
+                    >
                       <span className="text-dirty-purple font-roboto text-[20px] font-bold">
                         SELECCIONAR
                       </span>

@@ -83,7 +83,6 @@ const Lobby = (props) => {
     e.preventDefault();
 
     if (userName.trim() !== "") {
-      console.log(userName);
       const newUsr = { displayName: userName, id: socket.id, brain: brain };
       localStorage.setItem("user", JSON.stringify(newUsr));
       setUser(newUsr);
