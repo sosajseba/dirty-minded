@@ -33,7 +33,7 @@ const Game = () => {
   const maxPlayers = window._env_.REACT_APP_MAX_PLAYERS;
   const totalPlayers = maxPlayers - value.players.length;
   const inviteUrl = window._env_.REACT_APP_INVITE_URL;
-  const disabled = minPlayers - value.players.length >= 0;
+  const disabled = minPlayers - value.players.length > 0;
 
   function bestCardIsSelected(index) {
     return bestCardIndex != null
