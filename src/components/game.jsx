@@ -10,7 +10,7 @@ import {
   emitCardsReplacement,
   emitNextTurn,
   emitInitialCardsOrder,
-  emitCurrentBlackCard,
+  emitPickingWhiteCard,
 } from "./sockets/emit";
 import blackCards from "../data/blackcards.json";
 import whiteCards from "../data/whitecards.json";
@@ -27,6 +27,7 @@ const Game = () => {
   const [bestCardIndex, setBestCardIndex] = useState();
   const [roundWinnerId, setRoundWinnerId] = useState();
   const [selectedCardIndex, setSelectedCardIndex] = useState();
+  const [bigCardIndex, setBigCardIndex] = useState();
   const carouselRef = useRef(null);
   const minPlayers = window._env_.REACT_APP_MIN_PLAYERS;
   const maxPlayers = window._env_.REACT_APP_MAX_PLAYERS;
@@ -42,8 +43,9 @@ const Game = () => {
       : "";
   }
 
-  function highlightBestCard(cardIndex, winnerId) {
+  function highlightBestCard(cardIndex, winnerId, pickedCard) {
     if (everyonePicked() === true) {
+      emitPickingWhiteCard(pickedCard);
       setRoundWinnerId(winnerId);
       setBestCardIndex(cardIndex);
     }
@@ -118,14 +120,13 @@ const Game = () => {
       );
       emitInitialCardsOrder({ whiteCards: wcOrder, blackCards: bcOrder });
     }
-    emitCurrentBlackCard();
   }
 
-  function highlightMyCard(cardIndex) {
-    console.log(cardIndex)
-    if (getMe().picking === true) {
+  function highlightMyCard(card, index) {
+    if (imPicking()) {
       // double check
-      setSelectedCardIndex(cardIndex);
+      setSelectedCardIndex(index);
+      setBigCardIndex(card);
     }
   }
 
@@ -137,6 +138,22 @@ const Game = () => {
           : ""
         : "";
     return highlight;
+  }
+
+  function isMyTurn() {
+    return getMe().id === value.readerId;
+  }
+
+  function imPicking() {
+    return getMe().picking === true;
+  }
+
+  function getCurrentWhiteCard() {
+    return selectedCardIndex !== null && bigCardIndex
+      ? whiteCards[bigCardIndex].text
+      :
+      value.readerWhiteCard !== null ? whiteCards[value.readerWhiteCard].text :
+        "Eligiendo...";
   }
 
   const Lobby = () => (
@@ -155,7 +172,7 @@ const Game = () => {
             <></>
           ) : (
             <p className="text-dirty-white text-center font-roboto text-sm">
-              Esperando que se unan mas jugadores...{" "}
+              Esperando que se unan más jugadores...{" "}
             </p>
           )}
         </div>
@@ -221,13 +238,11 @@ const Game = () => {
             },
           }}
           items={me.cards.map((card, index) => (
-            <div key={index} onClick={() => highlightMyCard(index)}>
+            <div key={index} onClick={() => highlightMyCard(card, index)}>
               <Card text={whiteCards[card].text} index={index} />
             </div>
           ))}
         />
-
-        {/* <button onClick={() => pickWhiteCard(selectedCardIndex)}>Ready</button> */}
       </div>
       <button
         className="self-center"
@@ -244,7 +259,7 @@ const Game = () => {
 
   //CARD PARA VOTAR
   const Card = ({ text, index }) => (
-    <div className={'w-[99px] h-[141px] py-[16px] px-[14px] rounded-[7.247px] bg-white shadow-sm' + cardIsSelected(index)}>
+    <div className={'w-[99px] h-[141px] py-[16px] px-[14px] rounded-[7.247px] bg-white shadow-sm cursor-pointer' + cardIsSelected(index)}>
       <span className=" font-roboto text-[11px] font-bold ">{text}</span>
     </div>
   );
@@ -276,14 +291,14 @@ const Game = () => {
         <BubbleMessage
           name={"Dirty Minded"}
           nameColor={"#FFB8EB"}
-          message={value.readerId === getMe().id ? "Es su turno" :"Es el turno de " + getReaderName()}
+          message={isMyTurn() ? "Es su turno" : "Es el turno de " + getReaderName()}
           isPlayer={true}
         />
         {
           value.players.map((player, index) => {
             return (
               <BubbleMessage
-                name={player.id === getMe().id ? "Usted": player.name}
+                name={player.id === getMe().id ? "Usted" : player.name}
                 nameColor={"#FF8585"}
                 message={
                   player.score
@@ -323,7 +338,7 @@ const Game = () => {
   );
 
   const PlayerWhiteCard = ({ position, text, playerId }) => (
-    <div className={'w-[246px] h-[64px] rounded-[7px] bg-white shadow-dirty-shadow-card flex flex-row  items-center gap-[14px] pl-[9px]' + bestCardIsSelected(position - 1)}
+    <div className={'w-[246px] h-[64px] rounded-[7px] bg-white shadow-dirty-shadow-card flex flex-row  items-center gap-[14px] pl-[9px] cursor-pointer' + bestCardIsSelected(position - 1)}
       onClick={() => highlightBestCard(position - 1, playerId)}>
       <div className=" w-[27px] h-[27px] bg-[#48C3AD] rounded-full flex justify-center align-middle ">
         <span className="self-center text-sm font-bold text-dirty-purple font-roboto ">
@@ -351,7 +366,7 @@ const Game = () => {
             <div className="flex flex-row justify-between w-[100%] h-[100%]">
               <div>
                 <PlayerCardsContainer
-                  disabledButton={value.readerId !== me.id && !everyonePicked()}
+                  disabledButton={value.readerId !== me.id || !everyonePicked()}
                   winnerGetsOnePoint={() => winnerGetsOnePoint()}
                 >
                   {value.players
@@ -362,7 +377,7 @@ const Game = () => {
                     .map((player, index) => (
                       <div
                         key={"pickWhiteCard" + index}
-                        onClick={() => highlightBestCard(index, player.id)}
+                        onClick={() => highlightBestCard(index, player.id, player?.pickedCard)}
                       >
                         <PlayerWhiteCard
                           position={index + 1}
@@ -391,12 +406,7 @@ const Game = () => {
                     />
                     <BigCard
                       kind={"white"}
-                      text={
-                        //selectedCardIndex
-                        //? whiteCards[selectedCardIndex]
-                        //: 
-                        "Eligiendo..."
-                      }
+                      text={getCurrentWhiteCard()}
                     />
                   </div>
                 </div>
@@ -410,7 +420,10 @@ const Game = () => {
                 <div className="self-center flex flex-col gap-[21px]">
                   <Cartas />
                   <div className="self-center">
-                    <button className="w-[233px] h-[46px] py-[11px] px-[50px] rounded-[9px] bg-dirty-btn-p shadow-md" onClick={() => pickWhiteCard(selectedCardIndex)}>
+                    <button className={`w-[233px] h-[46px] py-[11px] px-[50px] rounded-[9px] bg-dirty-btn-p shadow-md ${isMyTurn() || !imPicking() ? "bg-dirty-disabled" : "bg-dirty-btn-p"}`}
+                      onClick={() => pickWhiteCard(selectedCardIndex)}
+                      disabled={isMyTurn() || !imPicking()}
+                    >
                       <span className="text-dirty-purple font-roboto text-[20px] font-bold">
                         SELECCIONAR
                       </span>
@@ -431,30 +444,9 @@ const Game = () => {
   );
 };
 
-{
-  /* <div className="w-[246px] h-[64px] rounded-[7px] bg-white shadow-dirty-shadow-card flex flex-row  items-center gap-[14px] pl-[9px]">
-
-  <div className=" w-[27px] h-[27px] bg-[#48C3AD] rounded-full flex justify-center align-middle ">
-    <span className="self-center text-sm font-bold text-dirty-purple font-roboto ">
-      1
-    </span>
-  </div>
-
-  <div>
-    <span className="text-sm font-bold text-dirty-purple font-roboto">
-      Moco, mucho moco
-    </span>
-  </div>
-</div>;
-
-<div className="w-[246px] h-[64px] rounded-[7px] bg-dirty-input  bg-opacity-30 border-dirty-input border-1" />; */
-}
-
 const PlayerEmptyCard = () => (
   <div className="w-[246px] h-[64px] rounded-[7px] bg-dirty-input  bg-opacity-30 border-dirty-input border-1" />
 );
-
-
 
 const PlayerCardsContainer = ({
   children,
@@ -468,68 +460,18 @@ const PlayerCardsContainer = ({
       </div>
     </div>
     <div className="w-[100%] rounded-[17px] py-[16px] px-[21px] bg-dirty-white">
-      <div
+      <button
         className={`w-[100%] h-[40px] rounded-[8px] text-center flex flex-col justify-center shadow-dirty-shadow-card cursor-pointer ${disabledButton ? "bg-dirty-disabled" : "bg-dirty-btn-p"
           }`}
-        onClick={() => !disabledButton && winnerGetsOnePoint()}
+        disabled={disabledButton}
+        onClick={() => winnerGetsOnePoint()}
       >
         <span className="text-dirty-purple font-bold text-[17.273px] font-roboto ">
           VOTAR
         </span>
-      </div>
+      </button>
     </div>
   </div>
 );
-
-/* 
-const LeftRect = () => {
-  return (
-    <div className="w-2/6 h-3/4 bg-dirty-white absolute left-0 top-0"></div>
-  );
-};
-
-const RightRect = () => {
-  return (
-    <div className="w-2/6 h-3/4 bg-dirty-white absolute right-0 top-0"></div>
-  );
-};
-
-const CardSlider = () => {
-  const settings = {
-    dots: true,
-    infinite: true,
-    speed: 500,
-    slidesToShow: 3,
-    slidesToScroll: 3,
-  };
-
-  return (
-    <div className="w-full h-1/2">
-      <Slider {...settings}>
-        <div>
-          <div className="w-4/5 h-4/6 bg-white m-auto"></div>
-        </div>
-        <div>
-          <div className="w-4/5 h-4/6 bg-white m-auto"></div>
-        </div>
-        <div>
-          <div className="w-4/5 h-4/6 bg-white m-auto"></div>
-        </div>
-        <div>
-          <div className="w-4/5 h-4/6 bg-white m-auto"></div>
-        </div>
-      </Slider>
-    </div>
-  );
-};
-
-const TopCards = () => {
-  return (
-    <div className="w-full h-1/4 flex">
-      <div className="w-1/2 h-full bg-gray-500"></div>
-      <div className="w-1/2 h-full bg-gray-700"></div>
-    </div>
-  );
-}; */
 
 export default Game;
