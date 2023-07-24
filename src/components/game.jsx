@@ -100,7 +100,7 @@ const Game = () => {
       emitFirstTurn();
       emitCardsDistribution();
     } else {
-      emitCardsReplacement();
+      //emitCardsReplacement();
       if (value.gameOver === false) {
         setRoundWinnerId(null);
         emitNextTurn();
